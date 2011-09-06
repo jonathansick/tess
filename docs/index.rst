@@ -10,6 +10,8 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   
+   vt_basics
 
 Indices and tables
 ==================

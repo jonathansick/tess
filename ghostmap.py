@@ -9,7 +9,7 @@ from PIL import ImageDraw
 class PointList2D(object):
     """Abstract class for a set of data points in 2D space."""
     def __init__(self):
-        super(PointList, self).__init__()
+        #super(PointList, self).__init__()
         # numpy arrays of the point locations
         self.x = None
         self.y = None
@@ -23,28 +23,25 @@ class AccretionGenerator(object):
     def __init__(self):
         super(AccretionGenerator, self).__init__()
     
-    def reassignBadBins(self, binNums, x, y, numPixels):
+    def reassign_bad_bins(self, binNums, x, y, numPixels):
         """
-        Now we must reassign the bad bins that were produced by the prior
-        bin accretion loop. Any pixels that could not be binned successfully
+        Reassign points in 'bad' bins that were produced by the prior
+        bin accretion loop. Any points that could not be binned successfully
         are accreted onto nearby existing bins.
-        """        
+        """
         # Obtain the number of good bins from the original binning
         nBins = numpy.max(binNums)
         print "Initial number of bins: %i" % nBins
         
         # The first task is to re-order the bin numbering to get rid of holes
-        # caused by bad bins. This shortens the length of any arrays containing
-        # references-by-index to bins, since some of the bins no longer exist.
-        # Also, for each i, a possible index to a bin, add an array of indices
-        # to the pixels that make up that bin.
+        # caused by bad bins.
         newBinNumber = 0 # indexes in the new-bin
         binIndices = [] # an order list whose elements are the tuples containing
                         # indexes to the bins
         
         for i in xrange(nBins):
             j = i + 1 # j is the actual old bin number
-            indices = numpy.where(binNums==j)[0] # find out what elements are in bin j
+            indices = numpy.where(binNums==j)[0] # elements in bin j
             if len(indices)==0:
                 # in this case, the bin is empty because it was a failure
                 # (harsh words...)
@@ -58,15 +55,15 @@ class AccretionGenerator(object):
                 # note that the newBinNumber in binNums[indices] is the index
                 # to binIndices
         
-        nNodes = newBinNumber # nNodes is now # of good bins after reassignment
+        nNodes = newBinNumber # updated number of nodes
         
         # Calculate the geometric centroid of each bin
-        xBin = numpy.zeros([nNodes], dtype=numpy.float_)
-        yBin = numpy.zeros([nNodes], dtype=numpy.float_)
+        xNode = numpy.zeros([nNodes], dtype=numpy.float)
+        yNode = numpy.zeros([nNodes], dtype=numpy.float)
         for i in xrange(nNodes):
             indices = binIndices[i]
-            xBin[i] = numpy.average(x[indices])
-            yBin[i] = numpy.average(y[indices])
+            xNode[i] = numpy.average(x[indices])
+            yNode[i] = numpy.average(y[indices])
         
         # Now reassign all unbinned pixels to the nearest good bin as
         # judged by the distance to the bin's centroid
@@ -74,7 +71,7 @@ class AccretionGenerator(object):
         numUnbinned = len(unbinned)
         print "Reassigning %i bins" % numUnbinned
         for i in xrange(numUnbinned):
-            dists = (x[unbinned[i]] - xBin)**2 + (y[unbinned[i]] - yBin)**2
+            dists = (x[unbinned[i]] - xNode)**2 + (y[unbinned[i]] - yNode)**2
             k = numpy.argmin(dists) # get the closest node
             binNums[unbinned[i]] = k+1 # assign pixel to closest node
         
@@ -95,18 +92,20 @@ class AccretionGenerator(object):
         # Calculation of centroids
         for i in xrange(nNodes):
             indices = binIndices[i]
-            xBin[i] = numpy.average(x[indices])
-            yBin[i] = numpy.average(y[indices])
+            xNode[i] = numpy.average(x[indices])
+            yNode[i] = numpy.average(y[indices])
         
-        return (indices, binNums, xBin, yBin)
+        return (indices, binNums, xNode, yNode)
     
-    def getNodes(self):
-        """Returns teh x and y positions of the Voronoi nodes."""
+    def get_nodes(self):
+        """Returns the x and y positions of the Voronoi nodes."""
         return self.xNode, self.yNode
     
-    def getNodeMembership(self):
+    def get_node_membership(self):
         """Returns an array, the length of the input data arrays in
-        `tessellate()`, which have indices into the node arrays of `getNodes()`."""
+        `tessellate()`, which have indices into the node arrays of
+        `get_nodes()`.
+        """
         return self.binNums
 
 class EqualSNGenerator(AccretionGenerator):
@@ -137,7 +136,7 @@ class EqualSNGenerator(AccretionGenerator):
         
         print "Accreting points into bins (SN regime)"
         # Pixel accretion for loop
-        for ind in xrange(1,numPixels+1,1): # start from one and go to numPixels
+        for ind in xrange(1,nPoints+1): # start from one and go to numPixels
             #print "Accreting bin #%i" % ind
             
             # initialize a new bin
@@ -619,7 +618,7 @@ class DelaunayDensityEstimator(object):
     def estimateDensity(self, xRange, yRange, nodeMasses, pixelMask=None):
         """Estimate the density of each node in the delaunay tessellation using
         the DTFE of Schaap (PhD Thesis, Groningen).
-        :param xRange: a tuple of (x_min, x_max); TODO make these option, just
+        :param xRange: a tuple of (x_min, x_max); TODO make these optional, just
             to scale the pixel mask array
         :param yRange: a tuple of (y_min, y_max)
         :param nodeMasses: an array of the mass of each node, in the same order

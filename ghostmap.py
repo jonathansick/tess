@@ -83,7 +83,7 @@ class AccretionGenerator(object):
         for i in xrange(nNodes):
             indices = numpy.where(binNums==(i+1))[0]
             # TODO check if the first statement in the if is ever used
-            if len(indices)==0:
+            if len(indices) == 0:
                 print "No indices for bin %i" % i
                 continue
             else:
@@ -118,12 +118,12 @@ class EqualSNGenerator(AccretionGenerator):
         self.yNode = None
         self.binNums = None
     
-    def generateNodes(self, xPoints, yPoints, signal, noise, targetSN):
+    def generate_nodes(self, xPoints, yPoints, signal, noise, targetSN):
         """Accretes points to creates nodes hosting the target level of S/N."""
         nPoints = len(xPoints)
         self.targetMeasure = targetSN
         
-        # binNums contains the bin identification number of each pixel
+        # binNums contains the bin identification number of each point
         binNums = numpy.zeros([nPoints], dtype=numpy.uint32)
         
         # good contains 1 if the pixel is in a good bin; otherwise its 0
@@ -150,7 +150,7 @@ class EqualSNGenerator(AccretionGenerator):
                 m = unbinned.size
                 
                 # test if there are no pixels left to bin
-                if m==0:
+                if m == 0:
                     break
                 
                 # find the unbinned pixel closest to the centroid of the current bin
@@ -217,7 +217,8 @@ class EqualSNGenerator(AccretionGenerator):
         print "Finished accreting bins for target S/N"
         
         # Clean up the binning, save results
-        indices, binNums, xBin, yBin = self.reassignBadBins(binNums, xPoints, y, numStars)
+        indices, binNums, xBin, yBin = self.reassign_bad_bins(binNums,
+                xPoints, yPoints, nPoints)
         self.xNode = xBin
         self.yNode = yBin
         self.binNums = binNums
@@ -235,28 +236,25 @@ class EqualMassGenerator(AccretionGenerator):
         self.yNode = None
         self.binNums = None
     
-    def generateNodes(self, xPoints, yPoints, mass, targetMass):
+    def generate_nodes(self, xPoints, yPoints, mass, targetMass):
         """Generates tessellation nodes from the points so that each node
         holds the minimum accumulated mass.
         
-        .. note:: the algorithm currently ignores mass; each point is given a mass of 1.
+        .. note:: the algorithm currently ignores mass;
+           each point is given a mass of 1.
         """
         nPoints = len(xPoints)
         self.targetMeasure = targetMass
         
-        # binNums contains the bin identification number of each pixel
+        # binNums contains the bin identification number of each point
         binNums = numpy.zeros([nPoints], dtype=numpy.uint32)
         # good contains 1 if the pixel is in a good bin; otherwise its 0
         good = numpy.zeros([nPoints], dtype=numpy.uint32)
         
-        # Start bin accretion of the pixel closest to the center of the data
+        # Start bin accretion of the point closest to the center of the data
         # distribution (ie, near centre of image)
-        xMin = xPoints.min()
-        xMax = xPoints.max()
-        yMin = yPoints.min()
-        yMax = yPoints.max()
-        xCentre = (xMax-xMin) / 2.0
-        yCentre = (yMax-yMin) / 2.0
+        xCentre = (xPoints.max() - xPoints.min()) / 2.
+        yCentre = (yPoints.max() - yPoints.min()) / 2.
         centreDist = (xPoints-xCentre)**2 + (yPoints-yCentre)**2
         currentBin = numpy.array([centreDist.argmin()], dtype=numpy.uint32)
         currentNumPoints = 1 # initial 1 pixel/particle in the currentBin
@@ -269,16 +267,16 @@ class EqualMassGenerator(AccretionGenerator):
             xBar = xPoints[currentBin] # initialize the centroid of the bin
             yBar = yPoints[currentBin]
             
-            while 1:
+            while True:
                 # unbinned holds the indices of all pixels yet to be binned
                 unbinned = numpy.where(binNums==0)[0]
                 m = unbinned.size
                 
-                # test if there are no pixels left to bin
-                if m==0:
+                # test if there are no points left to bin
+                if m == 0:
                     break
                 
-                # find the unbinned pixel closest to the centroid of the current bin
+                # find the unbinned point closest to the centroid of the current bin
                 dist = (xPoints[unbinned]-xBar)**2 + (yPoints[unbinned]-yBar)**2
                 k = numpy.argmin(dist)
                 
@@ -328,7 +326,8 @@ class EqualMassGenerator(AccretionGenerator):
         print "Finished accretion"
         
         # Clean up the binning, save results
-        indices, binNums, xBin, yBin = self.reassignBadBins(binNums, xPoints, yPoints, nPoints)
+        indices, binNums, xBin, yBin = self.reassign_bad_bins(binNums,
+                xPoints, yPoints, nPoints)
         self.xNode = xBin
         self.yNode = yBin
         self.binNums = binNums
@@ -357,7 +356,7 @@ class CVTessellation(object):
         
         # Obtain pre-generator node coordinates
         if preGenerator is not None:
-            xNode, yNode = preGenerator.getNodes()
+            xNode, yNode = preGenerator.get_nodes()
         else:
             # Make a null set of generators, the same as the voronoi points themselves
             xNode = xPoints.copy()
@@ -365,7 +364,7 @@ class CVTessellation(object):
         nNodes = len(xNode)
         
         # vBinNum holds the Voronoi bin numbers for each data point
-        vBinNum = numpy.zeros([nPoints], dtype=numpy.uint32)
+        vBinNum = numpy.zeros(nPoints, dtype=numpy.uint32)
         
         iters = 1
         while 1:
@@ -384,7 +383,7 @@ class CVTessellation(object):
             for j in xrange(nNodes):
                 indices = numpy.where(vBinNum==j)[0]
                 if len(indices) != 0:
-                    xBar, yBar = self.weightedCentroid(xPoints[indices], yPoints[indices], densPoints[indices]**2)
+                    xBar, yBar = self.weighted_centroid(xPoints[indices], yPoints[indices], densPoints[indices]**2)
                 else:
                     # if the Voronoi bin is empty then give (0,0) as its centroid
                     # then we can catch these empty bins later
@@ -407,7 +406,7 @@ class CVTessellation(object):
         self.yNode = yNode
         self.vBinNum = vBinNum
     
-    def weightedCentroid(self, x, y, density):
+    def weighted_centroid(self, x, y, density):
         """
         Compute the density-weighted centroid of one bin. See Equation 4 of
         Cappellari & Copin (2003).
@@ -423,16 +422,16 @@ class CVTessellation(object):
         yBar = numpy.sum(y*density)/mass
         return (xBar, yBar)
     
-    def getNodes(self):
+    def get_nodes(self):
         """Returns the x and y positions of the Voronoi nodes."""
         return self.xNode, self.yNode
     
-    def getNodeMembership(self):
+    def get_node_membership(self):
         """Returns an array, the length of the input data arrays in
         `tessellate()`, which have indices into the node arrays of `getNodes()`."""
         return self.vBinNum
     
-    def plotNodes(self, plotPath):
+    def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour"""
         from matplotlib.backends.backend_pdf import FigureCanvasPdf as FigureCanvas
         from matplotlib.figure import Figure
@@ -452,25 +451,25 @@ class DelaunayTessellation(object):
         self.triangulation = Triangulation(self.xNode, self.yNode)
         self.memTable = None # membership table. Can be computed with _computeMembershipTable()
     
-    def getTriangulation(self):
+    def get_triangulation(self):
         """:return: the Triangulation object (from Kern's package)"""
         return self.triangulation
     
-    def getNodes(self):
+    def get_nodes(self):
         """:return: tuple of (x, y), coordinates of tessellation nodes."""
         return (self.xNode, self.yNode)
     
-    def getExtremeNodes(self):
+    def get_extreme_nodes(self):
         """Extreme nodes are those on the convex hull of the whole node distribution.
         :return: numpy array (n, 1) listing the node indices that make up the
             convex hull. Ordered counter-clockwise."""
         return self.triangulation.hull
     
-    def getTriangles(self):
+    def get_triangles(self):
         """:return: numpy array (nTri by 3) of node indices of each triangle."""
         return self.triangulation.triangle_nodes
     
-    def getAdjacencyMatrix(self):
+    def get_adjacency_matrix(self):
         """Gets matrix describing the neighbouring triangles of each triangle.
         
         .. note:: As per Robert Kern's Delaunay package: The value can also be -1 meaning
@@ -485,35 +484,34 @@ class DelaunayTessellation(object):
         """
         return self.triangulation.triangle_neighbors
     
-    def getCircumcenters(self):
+    def get_circumcenters(self):
         """Gets an array of the circumcenter of each Delaunay triangle.
         :return: numpy array (nTri, 2), whose values are the (x,y) location
             of the circumcenter. Ordered like other triangle arrays.
         """
         return self.triangulation.circumcenters
     
-    def getMembershipTable(self):
+    def get_membership_table(self):
         """The membership table gives the indices of all triangles associated
         with a given node.
         :return: A list nNodes long (in same order as other node arrays). Each
             item is another list giving the triangle indices.
         """
         if self.memTable is None:
-            # Need to compute the membership table
-            self._makeMembershipTable()
+            self._make_membership_table()
         return self.memTable
     
-    def getNumberOfTriangles(self):
+    def get_number_of_triangles(self):
         """:return: integer number of triangles in Delaunay triangulation."""
         return self.triangulation.triangle_nodes.shape[0]
     
-    def computeTriangleAreas(self):
+    def compute_triangle_areas(self):
         """Computes the geometric area of each triangle.
         :return: (nTri, 1) numpy array of triangle areas.
         """
         print "Computing triangle areas"
         # Make abbreviated pointers
-        tri = self.getTriangles()
+        tri = self.get_triangles()
         x = self.xNode
         y = self.yNode
         # Compute side lengths
@@ -524,16 +522,16 @@ class DelaunayTessellation(object):
         areas = numpy.sqrt(s*(s-a)*(s-b)*(s-c)) # Heron's formula
         return areas
     
-    def computeVoronoiCellVertices(self):
+    def compute_voronoi_cell_vertices(self):
         """Computes the polygon vertices of the Voronoi cells surrounding each node."""
         # Function to assess the radial location of a point
         # Based on http://stackoverflow.com/questions/1709283/how-can-i-sort-a-coordinate-list-for-a-rectangle-counterclockwise
         ccwDist = lambda xy: (math.atan2(xy[1] - y0, xy[0] - x0) + 2.*math.pi) % 2.*math.pi
         
-        xNode, yNode = self.getNodes()
-        memTable = self.getMembershipTable()
-        circumcenters = self.getCircumcenters()
-        extremeNodes = self.getExtremeNodes()
+        xNode, yNode = self.get_nodes()
+        memTable = self.get_membership_table()
+        circumcenters = self.get_circumcenters()
+        extremeNodes = self.get_extreme_nodes()
         nExtremeNodes = len(extremeNodes)
         print extremeNodes
         cells = []
@@ -570,14 +568,14 @@ class DelaunayTessellation(object):
         
         return cells
     
-    def _makeMembershipTable(self):
+    def _make_membership_table(self):
         """Computes the membership table of the triangles that each node is
         associated with."""
-        xNode, yNode = self.getNodes()
+        xNode, yNode = self.get_nodes()
         nNodes = len(xNode)
         self.memTable = [None]*nNodes
-        nTri = self.getNumberOfTriangles()
-        triangleMatrix = self.getTriangles()
+        nTri = self.get_number_of_triangles()
+        triangleMatrix = self.get_triangles()
         vertices = range(3)
         for i in xrange(nTri):
             for j in vertices:
@@ -593,15 +591,16 @@ class DelaunayTessellation(object):
                     if triExists == False:
                         self.memTable[theNode].append(i)
 
+
 class VoronoiDensityEstimator(object):
     """Uses a DelaunayTessellation and point data to set the density of each
     Voronoi cell. This can then be used as the values for the zeroth-order
     Voronoi density field reconstruction.
     """
-    def __init__(self, arg):
+    def __init__(self):
         super(VoronoiDensityEstimator, self).__init__()
-        self.arg = arg
-    
+
+
 class DelaunayDensityEstimator(object):
     """Uses the DTFE to set the density of each Delaunay node from a
     DelaunayTessellation and the point data. This can then be used as the values
@@ -615,7 +614,7 @@ class DelaunayDensityEstimator(object):
         self.delaunayTessellation = delaunayTessellation
         self.nodeDensity = None
     
-    def estimateDensity(self, xRange, yRange, nodeMasses, pixelMask=None):
+    def estimate_density(self, xRange, yRange, nodeMasses, pixelMask=None):
         """Estimate the density of each node in the delaunay tessellation using
         the DTFE of Schaap (PhD Thesis, Groningen).
         :param xRange: a tuple of (x_min, x_max); TODO make these optional, just
@@ -627,22 +626,22 @@ class DelaunayDensityEstimator(object):
             and `yRange`. A pixel value of 1 is masked, values of 0 are admitted.
             This allows masked areas to be excluded from the density computation.
         """
-        xNode, yNode = self.delaunayTessellation.getNodes()
+        xNode, yNode = self.delaunayTessellation.get_nodes()
         nNodes = len(xNode)
         if nNodes != len(nodeMasses):
             print "Warning: nodeMasses has wrong length (%i, should be %i)" % \
                 (len(xNode), len(nodeMasses))
         
-        triangles = self.delaunayTessellation.getTriangles()
-        adjMatrix = self.delaunayTessellation.getAdjacencyMatrix()
-        memTable = self.delaunayTessellation.getMembershipTable()
-        nTri = self.delaunayTessellation.getNumberOfTriangles()
-        areas = self.delaunayTessellation.computeTriangleAreas()
-        extremeNodes = self.delaunayTessellation.getExtremeNodes()
+        #triangles = self.delaunayTessellation.get_triangles()
+        #adjMatrix = self.delaunayTessellation.get_adjacency_matrix()
+        memTable = self.delaunayTessellation.get_membership_table()
+        nTri = self.delaunayTessellation.get_number_of_triangles()
+        areas = self.delaunayTessellation.compute_triangle_areas()
+        extremeNodes = self.delaunayTessellation.get_extreme_nodes()
         
         # TODO this is where I would compute the masked areas...
         # use the Walking Triangle algorithm
-        maskedAreas = numpy.zeros([nTri])
+        maskedAreas = numpy.zeros(nTri)
         if pixelMask is not None:
             pass
         
@@ -654,9 +653,9 @@ class DelaunayDensityEstimator(object):
         
         # Correct the area of contiguous Voronoi regions on the outside of the
         # convex hull.
+        # TODO check this
         nExtremeNodes = len(extremeNodes)
         for i, node in enumerate(extremeNodes):
-            incompleteArea = contigAreas[i]
             # find the neighbouring extreme points, the one to the left and right
             # of the point being studied
             if i > 0:
@@ -696,7 +695,7 @@ class FieldRenderer(object):
         super(FieldRenderer, self).__init__()
         self.delaunayTessellation = delaunayTessellation
     
-    def renderZerothOrderVoronoi(self, nodeValues, xRange, yRange, xStep, yStep):
+    def render_zeroth_order_voronoi(self, nodeValues, xRange, yRange, xStep, yStep):
         """Renders a zeroth-order field (a Voronoi tiling).
         :param nodeValues: numpy array (nNodes, 1) of the field values at each node
         :param xRange: tuple of (x_min, x_max)
@@ -704,7 +703,7 @@ class FieldRenderer(object):
         :param xStep: scalar, size of pixels along x-axis
         :param yStep: scalar, size of pixels along y-axis
         """
-        cellVertices = self.delaunayTessellation.computeVoronoiCellVertices()
+        cellVertices = self.delaunayTessellation.compute_voronoi_cell_vertices()
         
         xScalarRange = xRange[1]-xRange[0]
         yScalarRange = yRange[1]-yRange[0]
@@ -738,7 +737,7 @@ class FieldRenderer(object):
         
         return imArrayCopy
     
-    def renderFirstOrderDelaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
+    def render_first_order_delaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
         """Renders a linearly interpolated Delaunay field.
         :param nodeValues: numpy array (nNodes, 1) of the field values at each node
         :param xRange: tuple of (x_min, x_max)
@@ -747,11 +746,11 @@ class FieldRenderer(object):
         :param yStep: scalar, size of pixels along y-axis
         :param defaultValue: scalar value used outside the tessellation's convex hull
         """
-        interp = self.delaunayTessellation.getTriangulation().linear_interpolator(nodeValues, default_value=defaultValue)
-        field = self._runInterpolator(interp, xRange, yRange, xStep, yStep)
+        interp = self.delaunayTessellation.get_triangulation().linear_interpolator(nodeValues, default_value=defaultValue)
+        field = self._run_interpolator(interp, xRange, yRange, xStep, yStep)
         return field
     
-    def renderNearestNeighboursDelaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
+    def render_nearest_neighbours_delaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
         """docstring for renderNearestNeighboursDelaunay.
         :param nodeValues: numpy array (nNodes, 1) of the field values at each node
         :param xRange: tuple of (x_min, x_max)
@@ -764,7 +763,7 @@ class FieldRenderer(object):
         field = self._runInterpolator(interp, xRange, yRange, xStep, yStep)
         return field
     
-    def _runInterpolator(self, interp, xRange, yRange, xStep, yStep):
+    def _run_interpolator(self, interp, xRange, yRange, xStep, yStep):
         """Runs Robert Kern's Linear or NN interpolator objects to create a field."""
         nX = int((xRange[1]-xRange[0])/xStep)
         nY = int((yRange[1]-yRange[0])/yStep)

@@ -50,7 +50,7 @@ y = y[inRange]
 # #numpy.random.uniform(1,50,len(x))
 sigma = 500.
 val = 1./numpy.sqrt(2*numpy.pi*sigma**2.)*numpy.exp(-(x-250.)**2./2./sigma**2.)*numpy.exp(-(y-250.)**2./2./sigma**2.)
-mass = numpy.ones([len(x)])
+mass = numpy.ones(len(x))
 
 generator = ghostmap.EqualMassGenerator()
 generator.generateNodes(x, y, None, 10) # bin 10 points together

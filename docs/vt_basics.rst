@@ -8,11 +8,10 @@ Code Architecture
 
 `ghostmap` is intended to be used at the code-level. The user writes a Python script/pipeline that loads the data, executes the binning, and extracts the binning result. Lets run through the basic `ghostmap` classes that the user will use.
 
-Point Data Storage
-   `PointList2D`.
-
 Generators
-   `AccretionGenerator`: `EqualSNGenerator` or `EqualMassGenerator`.
+   The first step in spatial binning is to choose a set of nodes that *generate* the tessellation. These generators aren't precise; the Lloyd's method of Centroidal Voronoi Tessellation will tweak the positions to ensure that *S/N* is maintained across Voronoi cells.
+   
+   `ghostmap` supports two choices for generators: equal S/N, or equal mass.   `AccretionGenerator`: `EqualSNGenerator` or `EqualMassGenerator`.
 
 Centroidal Voronoi Tessellation
    `CVTessellation`

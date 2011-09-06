@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
    
    vt_basics
+   todo
 
 Indices and tables
 ==================

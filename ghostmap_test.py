@@ -39,40 +39,41 @@ def plot_vo(tri, colors=None):
     ax.set_ylim(-50,550)
     canvas.print_figure("voronoi", dpi=300.)
 
-nPoints = 5000
+def guassian_point_process(x0, y0, xSigma, ySigma, nPoints):
+    """Returns a x and y coordinates of points sampled from a 2D guassian dist."""
+    x = numpy.random.normal(loc=x0, scale=xSigma, size=(nPoints,))
+    y = numpy.random.normal(loc=y0, scale=ySigma, size=(nPoints,))
+    return x, y
+
+
 xRange = [0,500]
-yRange = (0,500)
-x = numpy.random.normal(loc=250, scale=100, size=(nPoints,))
-y = numpy.random.normal(loc=250, scale=100, size=(nPoints,))
+yRange = [0,500]
+x, y = guassian_point_process(250, 250, 100, 50, 20000)
 inRange = numpy.where((x>0) & (y>0) & (x<xRange[1]) & (y<yRange[1]))[0]
 x = x[inRange]
 y = y[inRange]
-# #numpy.random.uniform(1,50,len(x))
-sigma = 500.
-val = 1./numpy.sqrt(2*numpy.pi*sigma**2.)*numpy.exp(-(x-250.)**2./2./sigma**2.)*numpy.exp(-(y-250.)**2./2./sigma**2.)
 mass = numpy.ones(len(x))
 
 generator = ghostmap.EqualMassGenerator()
-generator.generateNodes(x, y, None, 10) # bin 10 points together
+generator.generate_nodes(x, y, None, 100) # bin 10 points together
 cvt = ghostmap.CVTessellation()
 cvt.tessellate(x, y, mass, preGenerator=generator)
-binX, binY = cvt.getNodes()
-mass = numpy.ones([len(binX)])
+binX, binY = cvt.get_nodes()
+mass = numpy.ones(len(binX))
 
 tessellation = ghostmap.DelaunayTessellation(binX,binY)
 dtfe = ghostmap.DelaunayDensityEstimator(tessellation)
-density = dtfe.estimateDensity(xRange, yRange, mass)
+density = dtfe.estimate_density(xRange, yRange, mass)
 renderman = ghostmap.FieldRenderer(tessellation)
-field = renderman.renderFirstOrderDelaunay(density, xRange, yRange, 1, 1)
-saveFITS(field,path="test_bin.fits")
-triangulation = tessellation.getTriangulation()
+field = renderman.render_first_order_delaunay(density, xRange, yRange, 1, 1)
+saveFITS(field,path="test_delaunay.fits")
+triangulation = tessellation.get_triangulation()
 plot_vo(triangulation)
 
-# tessellation = ghostmap.DelaunayTessellation(x,y)
-# dtfe = ghostmap.DelaunayDensityEstimator(tessellation)
-# density = dtfe.estimateDensity(xRange, yRange, mass)
-# renderman = ghostmap.FieldRenderer(tessellation)
-# field = renderman.renderFirstOrderDelaunay(density, xRange, yRange, 1, 1)
-# saveFITS(field)
-# triangulation = tessellation.getTriangulation()
-# plot_vo(triangulation)
+zerothField = renderman.render_zeroth_order_voronoi(density, xRange, yRange, 1, 1)
+saveFITS(zerothField, path="test_voronoi.fits")
+
+nnField = renderman.render_nearest_neighbours_delaunay(density, xRange, yRange, 1, 1)
+saveFITS(zerothField, path="test_nn.fits")
+
+

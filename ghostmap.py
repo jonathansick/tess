@@ -428,7 +428,7 @@ class CVTessellation(object):
     
     def get_node_membership(self):
         """Returns an array, the length of the input data arrays in
-        `tessellate()`, which have indices into the node arrays of `getNodes()`."""
+        `tessellate()`, which have indices into the node arrays of `get_nodes()`."""
         return self.vBinNum
     
     def plot_nodes(self, plotPath):
@@ -737,7 +737,8 @@ class FieldRenderer(object):
         
         return imArrayCopy
     
-    def render_first_order_delaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
+    def render_first_order_delaunay(self, nodeValues, xRange, yRange,
+            xStep, yStep, defaultValue=numpy.nan):
         """Renders a linearly interpolated Delaunay field.
         :param nodeValues: numpy array (nNodes, 1) of the field values at each node
         :param xRange: tuple of (x_min, x_max)
@@ -746,11 +747,13 @@ class FieldRenderer(object):
         :param yStep: scalar, size of pixels along y-axis
         :param defaultValue: scalar value used outside the tessellation's convex hull
         """
-        interp = self.delaunayTessellation.get_triangulation().linear_interpolator(nodeValues, default_value=defaultValue)
+        interp = self.delaunayTessellation.get_triangulation().linear_interpolator(
+                nodeValues, default_value=defaultValue)
         field = self._run_interpolator(interp, xRange, yRange, xStep, yStep)
         return field
     
-    def render_nearest_neighbours_delaunay(self, nodeValues, xRange, yRange, xStep, yStep, defaultValue=numpy.nan):
+    def render_nearest_neighbours_delaunay(self, nodeValues, xRange, yRange,
+            xStep, yStep, defaultValue=numpy.nan):
         """docstring for renderNearestNeighboursDelaunay.
         :param nodeValues: numpy array (nNodes, 1) of the field values at each node
         :param xRange: tuple of (x_min, x_max)
@@ -759,15 +762,17 @@ class FieldRenderer(object):
         :param yStep: scalar, size of pixels along y-axis
         :param defaultValue: scalar value used outside the tessellation's convex hull
         """
-        interp = self.delaunayTessellation.getTriangulation().nn_interpolator(self, nodeValues, default_value=defaultValue)
-        field = self._runInterpolator(interp, xRange, yRange, xStep, yStep)
+        interp = self.delaunayTessellation.get_triangulation().nn_interpolator(self,
+                nodeValues) # , default_value=defaultValue
+        field = self._run_interpolator(interp, xRange, yRange, xStep, yStep)
         return field
     
     def _run_interpolator(self, interp, xRange, yRange, xStep, yStep):
         """Runs Robert Kern's Linear or NN interpolator objects to create a field."""
         nX = int((xRange[1]-xRange[0])/xStep)
         nY = int((yRange[1]-yRange[0])/yStep)
-        field = interp[yRange[0]:yRange[1]:complex(0,nY),xRange[0]:xRange[1]:complex(0,nX)]
+        field = interp[yRange[0]:yRange[1]:complex(0,nY),
+                    xRange[0]:xRange[1]:complex(0,nX)]
         return field
 
 def makeRectangularBinnedDensityField(x, y, mass, xRange, yRange, xBinSize, yBinSize):

@@ -352,6 +352,7 @@ class CVTessellation(object):
         :param preGenerator: an optional node generator already computed from
             the data.
         """
+        self.densPoints = densPoints
         nPoints = len(xPoints)
         
         # Obtain pre-generator node coordinates
@@ -430,6 +431,17 @@ class CVTessellation(object):
         """Returns an array, the length of the input data arrays in
         `tessellate()`, which have indices into the node arrays of `get_nodes()`."""
         return self.vBinNum
+
+    def get_node_weights(self):
+        """Return the sum of the density for the nodes, same order as
+        `get_nodes()`"""
+        nNodes = len(self.xNode)
+        nodeWeights = numpy.zeros(nNodes, dtype=numpy.float)
+        for i in xrange(nNodes):
+            ind = numpy.where(self.vBinNum == i)[0]
+            if len(ind) > 0:
+                nodeWeights[i] = numpy.sum(self.densPoints[ind])
+        return nodeWeights
     
     def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour"""

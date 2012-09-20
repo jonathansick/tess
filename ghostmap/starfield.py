@@ -80,6 +80,8 @@ class StarField(object):
         self.nStars = 0
         self.mag1Label = "mag1"
         self.mag2Label = "mag2"
+        self.xRange = None
+        self.yRange = None
         
     @classmethod
     def load_arrays(cls, x, y, mag1, mag2, weight=None, wcs=None):
@@ -114,6 +116,17 @@ class StarField(object):
             instance.weight = np.ones(len(x), dtype=np.float)
         else:
             instance.weight = weight
+        # Set bounds of the image area
+        if wcs is not None:
+            try:
+                instance.xRange = (1, wcs.naxis1)
+                instance.yRange = (1, wcs.naxis2)
+            except:
+                instance.xRange = (int(np.min(x)), int(np.max(x)))
+                instance.yRange = (int(np.min(y)), int(np.max(y)))
+        else:
+            instance.xRange = (int(np.min(x)), int(np.max(x)))
+            instance.yRange = (int(np.min(y)), int(np.max(y)))
         return instance
 
     def select_colours(self, poly):
@@ -158,7 +171,7 @@ class StarField(object):
 
         fig.savefig(plotPath + ".png", format="png", dpi=300)
 
-    def estimate_density_field(self, targetMass, xRange, yRange):
+    def estimate_density_field(self, targetMass):
         """Runs the density estimation pipeline.
         
         The steps are, in order:
@@ -175,9 +188,6 @@ class StarField(object):
         targetMass : scalar
             The number of stars (or equivalent, with completeness correction)
             targeted for each Voronoi bin
-        xRange, yRange : tuple, (2,)
-            The (xmin,xmax) and (ymin,ymax) of the rendered field, in pixels.
-            Normally set this to the size of your image.
         """
         # Generate a set of nodes to seed the CVT
         self.generator = ghostmap.EqualMassGenerator()
@@ -193,11 +203,12 @@ class StarField(object):
         self.tessellation = ghostmap.DelaunayTessellation(nodeX, nodeY)
         # DTFE Density Estimator -- produces density in stars per pix^2
         dtfe = ghostmap.DelaunayDensityEstimator(self.tessellation)
-        nodeDensity = dtfe.estimate_density(xRange, yRange, nodeWeight)
+        nodeDensity = dtfe.estimate_density(self.xRange, self.yRange,
+                nodeWeight)
         # Render the density by interpolating over the tessellation
         renderman = ghostmap.FieldRenderer(self.tessellation)
         fieldDensity = renderman.render_first_order_delaunay(nodeDensity,
-                xRange, yRange, 1, 1)
+                self.xRange, self.yRange, 1, 1)
         self.fieldDensity = fieldDensity
 
     def save_fits(self, fitsPath):

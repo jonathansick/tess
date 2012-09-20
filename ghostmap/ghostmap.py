@@ -625,6 +625,10 @@ class DelaunayDensityEstimator(object):
         super(DelaunayDensityEstimator, self).__init__()
         self.delaunayTessellation = delaunayTessellation
         self.nodeDensity = None
+        # hullCorrection: if True, then correct the incomplete area around
+        # Delaunay vertices on point distribution's hull
+        # NOTE: this seems to be broken
+        self.hullCorrection = False
     
     def estimate_density(self, xRange, yRange, nodeMasses, pixelMask=None):
         """Estimate the density of each node in the delaunay tessellation using
@@ -666,31 +670,32 @@ class DelaunayDensityEstimator(object):
         # Correct the area of contiguous Voronoi regions on the outside of the
         # convex hull.
         # TODO check this
-        nExtremeNodes = len(extremeNodes)
-        for i, node in enumerate(extremeNodes):
-            # find the neighbouring extreme points, the one to the left and right
-            # of the point being studied
-            if i > 0:
-                rightNode = extremeNodes[i-1]
-            else:
-                rightNode = extremeNodes[nExtremeNodes-1] # take the wrap-around
-            if i < nExtremeNodes-1:
-                leftNode = extremeNodes[i+1]
-            else:
-                leftNode = extremeNodes[0]
-            # find the angle that they subtend, using The Law of Cosines
-            a = math.sqrt((xNode[leftNode]-xNode[node])**2 + (yNode[leftNode]-yNode[node])**2)
-            b = math.sqrt((xNode[rightNode]-xNode[node])**2 + (yNode[rightNode]-yNode[node])**2)
-            c = math.sqrt((xNode[rightNode]-xNode[leftNode])**2 + (yNode[rightNode]-yNode[node])**2)
-            subAngle = math.acos((a**2+b**2-c**2)/(2*a*b))
-            # The sub angle should in theory be less than 180 degrees. This code
-            # ensures that we have an angle that covers more than 180 degrees.
-            extraAngle = 2*math.pi - subAngle
-            if extraAngle < math.pi:
-                print "Angle error in edge effect correction"
-            correctionFactor = extraAngle / subAngle
-            # update the contiguous area:
-            contigAreas[node] = (1.+correctionFactor)*contigAreas[node]
+        if self.hullCorrection:
+            nExtremeNodes = len(extremeNodes)
+            for i, node in enumerate(extremeNodes):
+                # find the neighbouring extreme points, the one to the left and right
+                # of the point being studied
+                if i > 0:
+                    rightNode = extremeNodes[i-1]
+                else:
+                    rightNode = extremeNodes[nExtremeNodes-1] # take the wrap-around
+                if i < nExtremeNodes-1:
+                    leftNode = extremeNodes[i+1]
+                else:
+                    leftNode = extremeNodes[0]
+                # find the angle that they subtend, using The Law of Cosines
+                a = math.sqrt((xNode[leftNode]-xNode[node])**2 + (yNode[leftNode]-yNode[node])**2)
+                b = math.sqrt((xNode[rightNode]-xNode[node])**2 + (yNode[rightNode]-yNode[node])**2)
+                c = math.sqrt((xNode[rightNode]-xNode[leftNode])**2 + (yNode[rightNode]-yNode[node])**2)
+                subAngle = math.acos((a**2+b**2-c**2)/(2*a*b))
+                # The sub angle should in theory be less than 180 degrees. This code
+                # ensures that we have an angle that covers more than 180 degrees.
+                extraAngle = 2*math.pi - subAngle
+                if extraAngle < math.pi:
+                    print "Angle error in edge effect correction"
+                correctionFactor = extraAngle / subAngle
+                # update the contiguous area:
+                contigAreas[node] = (1.+correctionFactor)*contigAreas[node]
         
         # Finally compute the density at the site of each node by using
         # eqn 3.36 of Schaap 2007 (pg 69)

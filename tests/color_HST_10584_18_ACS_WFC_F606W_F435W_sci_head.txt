@@ -1,0 +1,198 @@
+SIMPLE  =                    T / file does conform to FITS standard             
+BITPIX  =                  -32 / number of bits per data pixel                  
+NAXIS   =                    2 / number of data axes                            
+NAXIS1  =                 5900 / length of data axis 1                          
+NAXIS2  =                 5900 / length of data axis 2                          
+EXTEND  =                    F / FITS dataset may contain extensions            
+COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy
+COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H 
+DATE    = '2012-09-24T23:51:00' / file creation date (YYYY-MM-DDThh:mm:ss UT)   
+ORIGIN  = 'NOAO-IRAF FITS Image Kernel July 2003' / FITS file originator        
+IRAF-TLM= '14:44:18 (04/01/2008)' / Time of last modification                   
+EXPNAME = 'j9el18faq                ' / exposure identifier                     
+BUNIT   = 'ELECTRONS/SEC'      / brightness units                               
+                                                                                
+              / WFC CCD CHIP IDENTIFICATION                                     
+                                                                                
+CCDCHIP = '-999    '           / CCD chip (1 or 2)                              
+                                                                                
+              / World Coordinate System and Related Parameters                  
+                                                                                
+WCSAXES =                    2 / number of World Coordinate System axes         
+CRPIX1  =                2950. / Reference pixel shifted for cutout             
+CRPIX2  =                2950. / Reference pixel shifted for cutout             
+CRVAL1  =        148.912669217 / first axis value at reference pixel            
+CRVAL2  =        68.9927530261 / second axis value at reference pixel           
+CTYPE1  = 'RA---TAN'           / the coordinate type for the first axis         
+CTYPE2  = 'DEC--TAN'           / the coordinate type for the second axis        
+CD1_1   = -1.388888888888889E-05 / partial of first axis coordinate w.r.t. x    
+CD1_2   =                  0.0 / partial of first axis coordinate w.r.t. y      
+CD2_1   =                  0.0 / partial of second axis coordinate w.r.t. x     
+CD2_2   = 1.388888888888889E-05 / partial of second axis coordinate w.r.t. y    
+LTV1    =        0.0000000E+00 / offset in X to subsection start                
+LTV2    =        0.0000000E+00 / offset in Y to subsection start                
+LTM1_1  =                  1.0 / reciprocal of sampling rate in X               
+LTM2_2  =                  1.0 / reciprocal of sampling rate in Y               
+ORIENTAT=                  0.0 / position angle of image y axis (deg. e of n)   
+RA_APER =   1.489126688211E+02 / RA of aperture reference position              
+DEC_APER=   6.899265238125E+01 / Declination of aperture reference position     
+PA_APER =              147.526 / Position Angle of reference aperture center (de
+VAFACTOR=   9.999485381289E-01 / velocity aberration plate scale factor         
+                                                                                
+              / READOUT DEFINITION PARAMETERS                                   
+                                                                                
+CENTERA1=                 2073 / subarray axis1 center pt in unbinned dect. pix 
+CENTERA2=                 1035 / subarray axis2 center pt in unbinned dect. pix 
+SIZAXIS1=                 4096 / subarray axis1 size in unbinned detector pixels
+SIZAXIS2=                 2048 / subarray axis2 size in unbinned detector pixels
+BINAXIS1=                    1 / axis1 data bin size in unbinned detector pixels
+BINAXIS2=                    1 / axis2 data bin size in unbinned detector pixels
+                                                                                
+              / PHOTOMETRY KEYWORDS                                             
+                                                                                
+PHOTMODE= 'ACS WFC1 F606W MJD#53816.0820' / observation con                     
+PHOTFLAM=        7.9064547E-20 / inverse sensitivity, ergs/cm2/Ang/electron     
+PHOTZPT =       -2.1100000E+01 / ST magnitude zero point                        
+PHOTPLAM=        5.9176758E+03 / Pivot wavelength (Angstroms)                   
+PHOTBW  =        6.7230219E+02 / RMS bandwidth of filter plus detector          
+                                                                                
+              / REPEATED EXPOSURES INFO                                         
+                                                                                
+NCOMBINE=                    2 / number of image sets combined during CR rejecti
+                                                                                
+              / DATA PACKET INFORMATION                                         
+                                                                                
+FILLCNT =                    0 / number of segments containing fill             
+ERRCNT  =                    0 / number of segments containing errors           
+PODPSFF =                    F / podps fill present (T/F)                       
+STDCFFF =                    F / ST DDF fill present (T/F)                      
+STDCFFP = 'x5569 '             / ST DDF fill pattern (hex)                      
+                                                                                
+              / ON-BOARD COMPRESSION INFORMATION                                
+                                                                                
+WFCMPRSD=                    F / was WFC data compressed? (T/F)                 
+CBLKSIZ =                    0 / size of compression block in 2-byte words      
+LOSTPIX =                    0 / #pixels lost due to buffer overflow            
+COMPTYP = 'None    '           / compression type performed (Partial/Full/None) 
+                                                                                
+              / IMAGE STATISTICS AND DATA QUALITY FLAGS                         
+                                                                                
+NGOODPIX=              7605245 / number of good pixels                          
+SDQFLAGS=                31743 / serious data quality flags                     
+GOODMIN =       -3.2758182E+02 / minimum value of good pixels                   
+GOODMAX =        7.0553375E+04 / maximum value of good pixels                   
+GOODMEAN=        2.7916058E+02 / mean value of good pixels                      
+SOFTERRS=                    0 / number of soft error pixels (DQF=1)            
+SNRMIN  =       -8.2151997E-01 / minimum signal to noise of good pixels         
+SNRMAX  =        2.2269519E+02 / maximum signal to noise of good pixels         
+SNRMEAN =        1.5058384E+01 / mean value of signal to noise of good pixels   
+MEANDARK=        1.3899655E+00 / average of the dark values subtracted          
+MEANBLEV=        2.2600759E+03 / average of all bias levels subtracted          
+MEANFLSH=             0.000000 / Mean number of counts in post flash exposure   
+OCRVAL1 =       148.8921661058 / first axis value at reference pixel            
+OCRVAL2 =       69.00450577312 / second axis value at reference pixel           
+OCRPIX2 =               1024.0 / y-coordinate of reference pixel                
+OCRPIX1 =               2100.0 / x-coordinate of reference pixel                
+ONAXIS2 =                 2048 / Axis length                                    
+ONAXIS1 =                 4096 / Axis length                                    
+OCD2_2  =         -1.18246E-05 / partial of second axis coordinate w.r.t. y     
+OCD2_1  =          6.57501E-06 / partial of second axis coordinate w.r.t. x     
+OORIENTA=    147.7602839740535 / position angle of image y axis (deg. e of n)   
+OCTYPE1 = 'RA---TAN'           / the coordinate type for the first axis         
+OCD1_1  =          1.22009E-05 / partial of first axis coordinate w.r.t. x      
+OCD1_2  =           7.4578E-06 / partial of first axis coordinate w.r.t. y      
+OCTYPE2 = 'DEC--TAN'           / the coordinate type for the second axis        
+WCSCDATE= '13:59:28 (04/01/2008)' / Time WCS keywords were copied.              
+A_0_2   = 2.166159529762128E-06                                                 
+B_0_2   = -7.216881450774451E-06                                                
+A_1_1   = -5.197457646683463E-06                                                
+B_1_1   = 6.184432357744781E-06                                                 
+A_2_0   = 8.551277582556504E-06                                                 
+B_2_0   = -1.746491877058669E-06                                                
+A_0_3   = 1.081935198202655E-11                                                 
+B_0_3   = -4.175472049274933E-10                                                
+A_1_2   = -5.234870743692412E-10                                                
+B_1_2   = -6.169265268681388E-11                                                
+A_2_1   = -3.977154774728731E-11                                                
+B_2_1   = -5.08571616738621E-10                                                 
+A_3_0   = -4.730444829222792E-10                                                
+B_3_0   = 8.567635427816318E-11                                                 
+A_0_4   = 1.493561711660489E-14                                                 
+B_0_4   = -9.957049065547887E-15                                                
+A_1_3   = -2.456997553774615E-14                                                
+B_1_3   = 1.217430115688482E-14                                                 
+A_2_2   = 3.467912671043783E-14                                                 
+B_2_2   = -3.661432592865741E-14                                                
+A_3_1   = 1.971022971660309E-15                                                 
+B_3_1   = -3.779506805487477E-15                                                
+A_4_0   = 2.374301062402315E-14                                                 
+B_4_0   = -1.768765382600472E-14                                                
+A_ORDER =                    4                                                  
+B_ORDER =                    4                                                  
+HISTORY The following throughput tables were used: crotacomp$hst_ota_007_syn.fit
+HISTORY s, cracscomp$acs_wfc_im123_004_syn.fits, cracscomp$acs_f606w_005_syn.fit
+HISTORY s, cracscomp$acs_wfc_ebe_win12f_005_syn.fits, cracscomp$acs_wfc_ccd1_017
+HISTORY _syn.fits                                                               
+O_CRVAL1=         148.91298725                                                  
+O_CRVAL2=          68.99281075                                                  
+G_CRVAL1=         148.91298725                                                  
+G_CRVAL2=          68.99281075                                                  
+G_DRA   =                  0.0                                                  
+G_DDEC  =                  0.0                                                  
+G_RMSRA =                  0.0                                                  
+G_RMSDEC=                  0.0                                                  
+G_NMATCH=                    0                                                  
+S_CRVAL1=        148.912669217                                                  
+S_CRVAL2=        68.9927530261                                                  
+S_DRA   =             -1.14492                                                  
+S_DDEC  =            -0.207806                                                  
+S_RMSRA =             0.203854                                                  
+S_RMSDEC=             0.154978                                                  
+S_NMATCH=                   52                                                  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+HISTORY All refereed publications based on data obtained from the HLA must      
+HISTORY carry the following footnote:                                           
+HISTORY                                                                         
+HISTORY  "Based on observations made with the NASA/ESA Hubble Space Telescope,  
+HISTORY   and obtained from the Hubble Legacy Archive, which is a collaboration 
+HISTORY   between the Space Telescope Science Institute (STScI/NASA), the Space 
+HISTORY   Telescope European Coordinating Facility (ST-ECF/ESA) and the         
+HISTORY   Canadian Astronomy Data Centre (CADC/NRC/CSA)."                       
+HISTORY                                                                         
+HISTORY One copy of each paper resulting from data obtained from the HLA        
+HISTORY should be sent to the STScI.                                            
+HISTORY                                                                         
+HISTORY In addition, publications of research supported by an STScI grant       
+HISTORY must carry the following acknowledgment:                                
+HISTORY                                                                         
+HISTORY  "Support for Program number                                            
+HISTORY   ____________ was provided by NASA through a grant from the Space      
+HISTORY   Telescope Science Institute, which is operated by the Association of  
+HISTORY   Universities for Reasearch in Astronomy, Incorporated, under NASA     
+HISTORY   contract NAS5-26555."                                                 
+HISTORY Created by fitscut 1.4.2 (William Jon McCann)                           

@@ -42,7 +42,7 @@ class StarField(object):
         self.yRange = None
         
     @classmethod
-    def load_arrays(cls, x, y, mag1, mag2, weight=None, wcs=None):
+    def load_arrays(cls, x, y, mag1, mag2, weight=None, header=None):
         """Load a resolved stellar data set by passing position and
         magnitude information as equal-length 1D numpy vectors.
         
@@ -60,31 +60,34 @@ class StarField(object):
            Specifies the weight a given point should have relative to others.
            This might be used to correct for completeness from artificial
            star testing. e.g., weight = 1/completeness
-        wcs : a pywcs.WCS instance
-           A WCS instance, in the same frame as and x and y pixel coordinates.
+        header : a pyfits.Header instance (optional)
+           A header instance, in the same frame as the x & y pixel coordinates.
+           This is used by the `save_fits()` method to embed a proper WCS
+           in the field rendering.
         """
         instance = cls()
         instance.x = x
         instance.y = y
         instance.mag1 = mag1
         instance.mag2 = mag2
-        instance.wcs = wcs
+        instance.header = header
         instance.nStars = len(x)
         if weight is None:
             instance.weight = np.ones(len(x), dtype=np.float)
         else:
             instance.weight = weight
         # Set bounds of the image area
-        if wcs is not None:
+        if header is not None:
             try:
-                instance.xRange = (1, wcs.naxis1)
-                instance.yRange = (1, wcs.naxis2)
+                instance.xRange = (1, header['NAXIS2'] + 1)
+                instance.yRange = (1, header['NAXIS1'] + 1)
             except:
                 instance.xRange = (int(np.min(x)), int(np.max(x)))
                 instance.yRange = (int(np.min(y)), int(np.max(y)))
         else:
             instance.xRange = (int(np.min(x)), int(np.max(x)))
             instance.yRange = (int(np.min(y)), int(np.max(y)))
+        print instance.xRange, instance.yRange
         return instance
 
     def select_colours(self, poly):
@@ -167,14 +170,15 @@ class StarField(object):
         renderman = ghostmap.FieldRenderer(self.tessellation)
         fieldDensity = renderman.render_first_order_delaunay(nodeDensity,
                 self.xRange, self.yRange, 1, 1)
+        print "fieldDensity shape", fieldDensity.shape
         self.fieldDensity = fieldDensity
 
     def save_fits(self, fitsPath):
         """Save the density field as a FITS image to `fitsPath`."""
-        if self.wcs is None:
+        if self.header is None:
             pyfits.writeto(fitsPath, self.fieldDensity, clobber=True)
         else:
-            pyfits.writeto(fitsPath, self.fieldDensity, self.wcs,
+            pyfits.writeto(fitsPath, self.fieldDensity, self.header,
                            clobber=True)
 
     def plot_voronoi(self, plotPath, colors=[(0., 0., 0., 1.)]):

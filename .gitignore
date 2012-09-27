@@ -1,4 +1,6 @@
 *.pyc
+*.o
+*.so
 *.egg-info
 docs/_build/
 build/

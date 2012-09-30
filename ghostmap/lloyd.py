@@ -36,7 +36,8 @@ def _load_function(dllPath, fcnName, fcnArgTypes=None):
 
 # Load Lloyd function
 lloyd = _load_function("./_lloyd.so", "lloyd",
-        [POINTER(c_double), POINTER(c_double), POINTER(c_double),
+        [c_long, POINTER(c_double), POINTER(c_double),
+         POINTER(c_double), c_long,
          POINTER(c_double), POINTER(c_double), POINTER(c_long)])
 
 
@@ -56,7 +57,8 @@ def test():
     vBinNum = np.zeros(n).astype(np.int)
     vBinNum_ptr = vBinNum.ctypes.data_as(POINTER(c_long))
 
-    print lloyd(x_ptr, y_ptr, w_ptr, xNode_ptr, yNode_ptr, vBinNum_ptr)
+    print lloyd(n, x_ptr, y_ptr, w_ptr,
+            nNode, xNode_ptr, yNode_ptr, vBinNum_ptr)
 
 
 if __name__ == '__main__':

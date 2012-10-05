@@ -42,8 +42,8 @@ lloyd = _load_function("./_lloyd.so", "lloyd",
 
 
 def test():
-    n = 10
-    nNode = 2
+    n = 100
+    nNode = 10
     x = np.random.normal(0., 1., n).astype('float64')
     x_ptr = x.ctypes.data_as(POINTER(c_double))
     y = np.random.normal(0., 1., n).astype('float64')
@@ -57,8 +57,32 @@ def test():
     vBinNum = np.zeros(n).astype(np.int)
     vBinNum_ptr = vBinNum.ctypes.data_as(POINTER(c_long))
 
+    print xNode
+    print yNode
+
     print lloyd(n, x_ptr, y_ptr, w_ptr,
             nNode, xNode_ptr, yNode_ptr, vBinNum_ptr)
+
+    print xNode
+    print yNode
+
+    plot_nodes(x, y, vBinNum, xNode, yNode)
+
+
+def plot_nodes(x, y, vBinNum, xNode, yNode):
+    """docstring for plot_nodes"""
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(111)
+    nNodes = len(xNode)
+    for j in xrange(nNodes):
+        idx = np.where(vBinNum == j)
+        c = mpl.cm.jet(float(j) / float(nNodes))
+        ax.scatter(x[idx], y[idx], edgecolor='None', c=c, alpha=0.5)
+        ax.scatter([xNode[j]], [yNode[j]], edgecolor='None', c=c, s=60,
+                marker="*")
+    fig.savefig("lloyd.pdf", format="pdf")
 
 
 if __name__ == '__main__':

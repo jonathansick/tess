@@ -6,6 +6,9 @@ from matplotlib.delaunay.triangulate import Triangulation
 from PIL import Image
 from PIL import ImageDraw
 
+import lloyd
+
+
 class PointList2D(object):
     """Abstract class for a set of data points in 2D space."""
     def __init__(self):
@@ -332,127 +335,6 @@ class EqualMassGenerator(AccretionGenerator):
         self.yNode = yBin
         self.binNums = binNums
 
-class CVTessellation(object):
-    """Uses Lloyd's algorithm to assign data points to Voronoi bins so that each
-    bin has an equal mass.
-    """
-    def __init__(self):
-        super(CVTessellation, self).__init__()
-        self.xNode = None
-        self.yNode = None
-        self.vBinNum = None
-    
-    def tessellate(self, xPoints, yPoints, densPoints, preGenerator=None):
-        """ Computes the centroidal voronoi tessellation itself.
-        :param xPoints: array of cartesian `x` locations of each data point.
-        :param yPoints: array of cartesian `y` locations of each data point.
-        :param densPoints: array of the density of each point. For an equal-S/N
-            generator, this should be set to (S/N)**2. For an equal number generator
-            this can be simple an array of ones.
-        :param preGenerator: an optional node generator already computed from
-            the data.
-        """
-        self.densPoints = densPoints
-        nPoints = len(xPoints)
-        
-        # Obtain pre-generator node coordinates
-        if preGenerator is not None:
-            xNode, yNode = preGenerator.get_nodes()
-        else:
-            # Make a null set of generators, the same as the voronoi points themselves
-            xNode = xPoints.copy()
-            yNode = yPoints.copy()
-        nNodes = len(xNode)
-        
-        # vBinNum holds the Voronoi bin numbers for each data point
-        vBinNum = numpy.zeros(nPoints, dtype=numpy.uint32)
-        
-        iters = 1
-        while 1:
-            xNodeOld = xNode.copy()
-            yNodeOld = yNode.copy()
-            
-            for j in xrange(nPoints):
-                # Assign each point to a node. A point is assigned to the
-                # node that it is closest to.
-                # Note: this now means the voronoi bin numbers start from zero
-                vBinNum[j] = numpy.argmin((xPoints[j]-xNode)**2 + (yPoints[j]-yNode)**2)
-            
-            # Compute centroids of these Vorononi Bins. But now using a dens^2
-            # weighting. The dens^2 weighting produces equal-mass Voronoi bins.
-            # See Capellari and Copin (2003)
-            for j in xrange(nNodes):
-                indices = numpy.where(vBinNum==j)[0]
-                if len(indices) != 0:
-                    xBar, yBar = self.weighted_centroid(xPoints[indices], yPoints[indices], densPoints[indices]**2)
-                else:
-                    # if the Voronoi bin is empty then give (0,0) as its centroid
-                    # then we can catch these empty bins later
-                    xBar = 0.0
-                    yBar = 0.0
-                
-                xNode[j] = xBar
-                yNode[j] = yBar
-            
-            delta = numpy.sum((xNode-xNodeOld)**2 + (yNode-yNodeOld)**2)
-            iters = iters + 1
-            
-            print "CVT Iteration: %i, Delta %f" % (iters, delta)
-            
-            if delta == 0.:
-                break
-        
-        print "CVT complete"
-        self.xNode = xNode
-        self.yNode = yNode
-        self.vBinNum = vBinNum
-    
-    def weighted_centroid(self, x, y, density):
-        """
-        Compute the density-weighted centroid of one bin. See Equation 4 of
-        Cappellari & Copin (2003).
-        
-        :param x: array of x-axis spatial coordinates
-        :param y: array of y-axis spatial coordiantes
-        :param density: array containing the weighting values
-        
-        :return: tuple `(xBar, yBar)`, the weighted centroid
-        """
-        mass = numpy.sum(density)
-        xBar = numpy.sum(x*density)/mass
-        yBar = numpy.sum(y*density)/mass
-        return (xBar, yBar)
-    
-    def get_nodes(self):
-        """Returns the x and y positions of the Voronoi nodes."""
-        return self.xNode, self.yNode
-    
-    def get_node_membership(self):
-        """Returns an array, the length of the input data arrays in
-        `tessellate()`, which have indices into the node arrays of `get_nodes()`."""
-        return self.vBinNum
-
-    def get_node_weights(self):
-        """Return the sum of the density for the nodes, same order as
-        `get_nodes()`"""
-        nNodes = len(self.xNode)
-        nodeWeights = numpy.zeros(nNodes, dtype=numpy.float)
-        for i in xrange(nNodes):
-            ind = numpy.where(self.vBinNum == i)[0]
-            if len(ind) > 0:
-                nodeWeights[i] = numpy.sum(self.densPoints[ind])
-        return nodeWeights
-    
-    def plot_nodes(self, plotPath):
-        """Plots the points in each bin as a different colour"""
-        from matplotlib.backends.backend_pdf import FigureCanvasPdf as FigureCanvas
-        from matplotlib.figure import Figure
-        
-        fig = Figure(figsize=(6,4))
-        canvas = FigureCanvas(fig)
-        ax = fig.add_subplot(111)
-        ax.plot(self.xNode, self.yNode, 'ok')
-        canvas.print_figure(plotPath)
 
 class DelaunayTessellation(object):
     """Creates a Delaunay triangulation of the given nodes."""

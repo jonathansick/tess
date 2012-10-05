@@ -33,9 +33,8 @@ def build_ctypes_ext(name, sources):
     compiler.link_shared_object(get_onames(sources), name + ".so")
 
 # Build the ctypes extensions into .so shared libraries
-# TODO include the build .so file in the installation
-# see http://packages.python.org/distribute/setuptools.html#including-data-files
-# Perhaps exhange the build_ctypes_ext for an autotools-based make setup
+# Included in installation via the package_data field.
+# TODO Perhaps exhange the build_ctypes_ext for an autotools-based make setup
 # which may be more robust
 build_ctypes_ext("ghostmap/_lloyd", ["ghostmap/_lloyd.c"])
 
@@ -43,6 +42,7 @@ build_ctypes_ext("ghostmap/_lloyd", ["ghostmap/_lloyd.c"])
 setup(
     name="ghostmap",
     packages=["ghostmap"],
+    package_data={'': ['*.so']},
     cmdclass=cmdclass,
     author="Jonathan Sick",
     author_email="jonathansick@mac.com",

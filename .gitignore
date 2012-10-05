@@ -4,6 +4,7 @@
 *.egg-info
 docs/_build/
 build/
+dist/
 *.fits
 *.pdf
 *.png

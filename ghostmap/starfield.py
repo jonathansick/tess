@@ -15,7 +15,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 import ghostmap
-from lloyd import CVTessellation
+from cvtessellation import CVTessellation
 
 
 class StarField(object):

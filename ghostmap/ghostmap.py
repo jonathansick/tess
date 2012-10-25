@@ -6,8 +6,6 @@ from matplotlib.delaunay.triangulate import Triangulation
 from PIL import Image
 from PIL import ImageDraw
 
-import lloyd
-
 
 class PointList2D(object):
     """Abstract class for a set of data points in 2D space."""

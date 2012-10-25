@@ -12,7 +12,7 @@ from ctypes import c_double, c_long, POINTER
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-import ghostmap.lloyd
+import ghostmap.cvtessellation as cvt
 
 
 def test():
@@ -34,7 +34,7 @@ def test():
     print xNode
     print yNode
 
-    retval = ghostmap.lloyd.lloyd(n, x_ptr, y_ptr, w_ptr,
+    retval = cvt.lloyd(n, x_ptr, y_ptr, w_ptr,
             nNode, xNode_ptr, yNode_ptr, vBinNum_ptr)
     assert retval == 1, "Lloyd's algorithm failed!"
 

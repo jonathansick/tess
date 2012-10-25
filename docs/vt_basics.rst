@@ -1,20 +1,26 @@
 Overview of Binning with Centroidal Voronoi Tessellations
 =========================================================
 
-`ghostmap` is a Python module that allows you to bin a two-dimensional distribution of points into discrete Voronoi cells. Voronoi binning has the great property that cells--the 2D 'bins'--are sized and located according to the underlying point distribution. Where there is a high density (or a high *S/N*), the cells are smaller; where point distribution is sparse the cells are larger. In fact, `ghostmap` uses Lloyd's method fo Centroidal Voronoi Tessellation (CVT) so that *every cell has equal mass, or equal S/N.*
+`ghostmap` is a Python module that allows you to bin a two-dimensional distribution of points into discrete Voronoi cells.
+Voronoi binning has the great property that cells--the 2D 'bins'--are sized and located according to the underlying point distribution.
+Where there is a high density (or a high *S/N*), the cells are smaller; where point distribution is sparse the cells are larger.
+In fact, `ghostmap` uses Lloyd's method of Centroidal Voronoi Tessellation (CVT) so that *every cell has equal mass, or equal S/N.*
+This 
 
-Code Architecture
------------------
+Architecture
+------------
 
-`ghostmap` is intended to be used at the code-level. The user writes a Python script/pipeline that loads the data, executes the binning, and extracts the binning result. Lets run through the basic `ghostmap` classes that the user will use.
+`ghostmap` is intended to be used as a package called by your own Python analysis pipeline.
+Lets run through the basic `ghostmap` classes that the user will use.
 
 Generators
-   The first step in spatial binning is to choose a set of nodes that *generate* the tessellation. These generators aren't precise; the Lloyd's method of Centroidal Voronoi Tessellation will tweak the positions to ensure that *S/N* is maintained across Voronoi cells.
+   The first step in spatial binning is to choose a set of nodes that *generate* the tessellation.
+   These generators aren't precise; the Lloyd's method of Centroidal Voronoi Tessellation will tweak the positions to ensure that *S/N* is maintained across Voronoi cells.
    
-   `ghostmap` supports two choices for generators: equal S/N, or equal mass.   `AccretionGenerator`: `EqualSNGenerator` or `EqualMassGenerator`.
+   `ghostmap` supports two choices for generators: equal S/N (:class:`ghostmap.EqualSNGenerator`), or equal mass (:class:`ghostmap.EqualMassGenerator`).
 
 Centroidal Voronoi Tessellation
-   `CVTessellation`
+   :class:`CVTessellation`
 
 Delaunay Triangulation
    `Delaunay Triangulation`

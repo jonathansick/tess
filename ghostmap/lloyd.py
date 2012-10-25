@@ -60,6 +60,7 @@ class CVTessellation(object):
         self.yNode = None  #: Array of node y-coordinates
         self.vBinNum = None  #: Array assigning input points to nodes indices
         self.segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
+        self.cellAreas = None  #: 1D array of Voronoi cell areas
         self._useC = useC
         if lloyd is None:
             # can't use ctypes lloyd because it failed to load
@@ -141,6 +142,22 @@ class CVTessellation(object):
             pyfits.writeto(fitsPath, self.segmap, kwargs['header'])
         else:
             pyfits.writeto(fitsPath, self.segmap)
+    
+    def compute_cell_areas(self):
+        """Compute the areas of Voronoi cells; result in stored in the
+        `self.cellAreas` attribute.
+
+        .. note:: This method requires that the segmentation map is computed
+           (see :meth:`make_segmap`), and is potentially expensive (I'm working
+           on a faster implementation). Uses :func:`numpy.bincount` to count
+           number of pixels in the segmentation map with a given Voronoi
+           cell value. I'd prefer to calculate these from simple geometry,
+           but no good python packages exist for defining Voronoi cell
+           polygons.
+        """
+        assert self.segmap is not None, "Compute a segmentation map with first"
+        pixelCounts = np.bincount(self.segmap.ravel())
+        self.cellAreas = pixelCounts
 
     def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm with an accellerated ctypes code.

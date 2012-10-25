@@ -64,13 +64,18 @@ class CVTessellation(object):
     
     def tessellate(self, xPoints, yPoints, densPoints, preGenerator=None):
         """ Computes the centroidal voronoi tessellation itself.
+
         :param xPoints: array of cartesian `x` locations of each data point.
+        :type xPoints: 1D `ndarray`
         :param yPoints: array of cartesian `y` locations of each data point.
-        :param densPoints: array of the density of each point. For an equal-S/N
-            generator, this should be set to (S/N)**2. For an equal number
-            generator this can be simple an array of ones.
+        :type yPoints: 1D `ndarray`
+        :param densPoints: Density *or weight* of each point. For an equal-S/N
+                           generator, this should be set to (S/N)**2.
+                           For an equal number generator this can be simple
+                           an array of ones.
+        :type densPoints: 1D `ndarray`
         :param preGenerator: an optional node generator already computed from
-            the data.
+                             the data.
         """
         self.densPoints = densPoints
         

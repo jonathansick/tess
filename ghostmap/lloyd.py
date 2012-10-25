@@ -97,7 +97,16 @@ class CVTessellation(object):
 
     def make_segmap(self, header=None, xlim=None, ylim=None):
         """Make a pixel segmentation map that paints the Voronoi bin number
-        on Voronoi pixels."""
+        on Voronoi pixels.
+        
+        The result is stored as the `segmap` attribute and returned to the
+        caller.
+        
+        :param header: pyfits header, used to define size of segmentation map.
+        :param xlim, ylim: tuples of (min, max) pixel ranges, used if
+                           `header` is `None`.
+        :returns: The segmentation map array, `segmap`.
+        """
         if header is not None:
             # Assume origin at 1, FITS standard
             xlim = (1, header['NAXIS2'] + 1)
@@ -114,6 +123,23 @@ class CVTessellation(object):
         # tessellation!
         self.segmap = griddata(yxNode, np.arange(0, self.yNode.shape[0]),
                 (xgrid, ygrid), method='nearest')
+
+    def save_segmap(self, fitsPath, **kwargs):
+        """Convenience wrapper to :meth:`make_segmap` that saves the
+        segmentation map to a FITS file.
+
+        :param fitsPath: full filename destination of FITS file
+        :param kwargs: keyword arguments are passed to :meth:`make_segmap`.
+        """
+        import pyfits
+        fitsDir = os.path.dirname(fitsPath)
+        if not os.path.exists(fitsDir): os.makedirs(fitsDir)
+        if self.segmap is None:
+            self.make_segmap(**kwargs)
+        if 'header' in kwargs:
+            pyfits.writeto(fitsPath, self.segmap, kwargs['header'])
+        else:
+            pyfits.writeto(fitsPath, self.segmap)
 
     def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm with an accellerated ctypes code.

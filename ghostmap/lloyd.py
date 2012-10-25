@@ -9,6 +9,7 @@ Python ctypes wrapper for _lloyd.c
 import os
 import ctypes
 import numpy as np
+import scipy.interpolate.griddata as griddata
 
 from ctypes import c_double, c_long, POINTER
 
@@ -54,9 +55,10 @@ class CVTessellation(object):
     """
     def __init__(self, useC=True):
         super(CVTessellation, self).__init__()
-        self.xNode = None
-        self.yNode = None
-        self.vBinNum = None
+        self.xNode = None  #: Array of node x-coordinates
+        self.yNode = None  #: Array of node y-coordinates
+        self.vBinNum = None  #: Array assigning input points to nodes indices
+        self.segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
         self._useC = useC
         if lloyd is None:
             # can't use ctypes lloyd because it failed to load
@@ -87,6 +89,26 @@ class CVTessellation(object):
             self._run_c_lloyds(xPoints, yPoints, densPoints, xNode, yNode)
         else:
             self._run_py_lloyds(xPoints, yPoints, densPoints, xNode, yNode)
+
+    def make_segmap(self, header=None, xlim=None, ylim=None):
+        """Make a pixel segmentation map that paints the Voronoi bin number
+        on Voronoi pixels."""
+        if header is not None:
+            # Assume origin at 1, FITS standard
+            xlim = (1, header['NAXIS2'] + 1)
+            ylim = (1, header['NAXIS1'] + 1)
+        else:
+            assert xlim is not None, "Need a xlim range (min, max)"
+            assert ylim is not None, "Need a ylim range (min, max)"
+        xgrid = np.arange(xlim[0], xlim[1])
+        ygrid = np.arange(ylim[0], ylim[1])
+        # Package xNode and yNode into Nx2 array
+        # y is first index if FITS data is also structured this way
+        yxNode = np.hstack(self.yNode, self.xNode)
+        # Nearest neighbour interpolation is equivalent to Voronoi pixel
+        # tessellation!
+        self.segmap = griddata(yxNode, self.vBinNum, (xgrid, ygrid),
+                method='nearest')
 
     def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm with an accellerated ctypes code.

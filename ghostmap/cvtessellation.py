@@ -7,12 +7,12 @@ Python ctypes wrapper for _lloyd.c
 """
 
 import os
-import ctypes
 import numpy as np
-import scipy.interpolate.griddata as griddata
-import scipy.spatial.cKDTree as KDTree
 
+import ctypes
 from ctypes import c_double, c_long, POINTER
+
+from voronoi import VoronoiTessellation
 
 
 def _load_function(dllName, fcnName, fcnArgTypes=None):
@@ -48,25 +48,36 @@ except:
     lloyd = None
 
 
-class CVTessellation(object):
+class CVTessellation(VoronoiTessellation):
     """Uses Lloyd's algorithm to assign data points to Voronoi bins so that
     each bin has an equal mass.
 
+    :param xPoints: array of cartesian `x` locations of each data point.
+    :type xPoints: 1D `ndarray`
+    :param yPoints: array of cartesian `y` locations of each data point.
+    :type yPoints: 1D `ndarray`
+    :param densPoints: Density *or weight* of each point. For an equal-S/N
+                        generator, this should be set to (S/N)**2.
+                        For an equal number generator this can be simple
+                        an array of ones.
+    :type densPoints: 1D `ndarray`
+    :param preGenerator: an optional node generator already computed from
+                            the data.
     :param useC: Set `False` to force use of pure-python Lloyd's algorithm
     """
-    def __init__(self, useC=True):
-        super(CVTessellation, self).__init__()
-        self.xNode = None  #: Array of node x-coordinates
-        self.yNode = None  #: Array of node y-coordinates
+    def __init__(self, xPoints, yPoints, densPoints, preGenerator=None,
+            useC=True):
         self.vBinNum = None  #: Array assigning input points to nodes indices
-        self.segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
-        self.cellAreas = None  #: 1D array of Voronoi cell areas
         self._useC = useC
         if lloyd is None:
             # can't use ctypes lloyd because it failed to load
             self._useC = False
+        xNode, yNode, vBinNum = self._tessellate(xPoints, yPoints, densPoints,
+                preGenerator=preGenerator)
+        super(CVTessellation, self).__init__(xNode, yNode)
+        self.vBinNum = vBinNum
     
-    def tessellate(self, xPoints, yPoints, densPoints, preGenerator=None):
+    def _tessellate(self, xPoints, yPoints, densPoints, preGenerator=None):
         """ Computes the centroidal voronoi tessellation itself.
 
         :param xPoints: array of cartesian `x` locations of each data point.
@@ -93,71 +104,12 @@ class CVTessellation(object):
             yNode = yPoints.copy()
 
         if self._useC:
-            self._run_c_lloyds(xPoints, yPoints, densPoints, xNode, yNode)
+            xNode, yNode, vBinNum = self._run_c_lloyds(xPoints, yPoints,
+                    densPoints, xNode, yNode)
         else:
-            self._run_py_lloyds(xPoints, yPoints, densPoints, xNode, yNode)
-
-    def make_segmap(self, header=None, xlim=None, ylim=None):
-        """Make a pixel segmentation map that paints the Voronoi bin number
-        on Voronoi pixels.
-        
-        The result is stored as the `segmap` attribute and returned to the
-        caller.
-        
-        :param header: pyfits header, used to define size of segmentation map.
-        :param xlim, ylim: tuples of (min, max) pixel ranges, used if
-                           `header` is `None`.
-        :returns: The segmentation map array, `segmap`.
-        """
-        if header is not None:
-            # Assume origin at 1, FITS standard
-            xlim = (1, header['NAXIS2'] + 1)
-            ylim = (1, header['NAXIS1'] + 1)
-        else:
-            assert xlim is not None, "Need a xlim range (min, max)"
-            assert ylim is not None, "Need a ylim range (min, max)"
-        xgrid = np.arange(xlim[0], xlim[1])
-        ygrid = np.arange(ylim[0], ylim[1])
-        # Package xNode and yNode into Nx2 array
-        # y is first index if FITS data is also structured this way
-        yxNode = np.hstack(self.yNode, self.xNode)
-        # Nearest neighbour interpolation is equivalent to Voronoi pixel
-        # tessellation!
-        self.segmap = griddata(yxNode, np.arange(0, self.yNode.shape[0]),
-                (xgrid, ygrid), method='nearest')
-
-    def save_segmap(self, fitsPath, **kwargs):
-        """Convenience wrapper to :meth:`make_segmap` that saves the
-        segmentation map to a FITS file.
-
-        :param fitsPath: full filename destination of FITS file
-        :param kwargs: keyword arguments are passed to :meth:`make_segmap`.
-        """
-        import pyfits
-        fitsDir = os.path.dirname(fitsPath)
-        if not os.path.exists(fitsDir): os.makedirs(fitsDir)
-        if self.segmap is None:
-            self.make_segmap(**kwargs)
-        if 'header' in kwargs:
-            pyfits.writeto(fitsPath, self.segmap, kwargs['header'])
-        else:
-            pyfits.writeto(fitsPath, self.segmap)
-    
-    def compute_cell_areas(self):
-        """Compute the areas of Voronoi cells; result in stored in the
-        `self.cellAreas` attribute.
-
-        .. note:: This method requires that the segmentation map is computed
-           (see :meth:`make_segmap`), and is potentially expensive (I'm working
-           on a faster implementation). Uses :func:`numpy.bincount` to count
-           number of pixels in the segmentation map with a given Voronoi
-           cell value. I'd prefer to calculate these from simple geometry,
-           but no good python packages exist for defining Voronoi cell
-           polygons.
-        """
-        assert self.segmap is not None, "Compute a segmentation map with first"
-        pixelCounts = np.bincount(self.segmap.ravel())
-        self.cellAreas = pixelCounts
+            xNode, yNode, vBinNum = self._run_py_lloyds(xPoints, yPoints,
+                    densPoints, xNode, yNode)
+        return xNode, yNode, vBinNum
 
     def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm with an accellerated ctypes code.
@@ -188,9 +140,7 @@ class CVTessellation(object):
             nNode, xNode_ptr, yNode_ptr, vBinNum_ptr)
         assert retVal == 1, "ctypes lloyd did not converge"
         print "CVT Complete"
-        self.xNode = xNode
-        self.yNode = yNode
-        self.vBinNum = vBinNum
+        return xNode, yNode, vBinNum
 
     def _run_py_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm in pure-python
@@ -245,11 +195,8 @@ class CVTessellation(object):
             
             if delta == 0.:
                 break
-        
         print "CVT complete"
-        self.xNode = xNode
-        self.yNode = yNode
-        self.vBinNum = vBinNum
+        return xNode, yNode, vBinNum
     
     def _weighted_centroid(self, x, y, density):
         """
@@ -266,10 +213,6 @@ class CVTessellation(object):
         xBar = np.sum(x * density) / mass
         yBar = np.sum(y * density) / mass
         return (xBar, yBar)
-    
-    def get_nodes(self):
-        """Returns the x and y positions of the Voronoi nodes."""
-        return self.xNode, self.yNode
     
     def get_node_membership(self):
         """Returns an array, the length of the input data arrays in
@@ -288,32 +231,3 @@ class CVTessellation(object):
             if len(ind) > 0:
                 nodeWeights[i] = np.sum(self.densPoints[ind])
         return nodeWeights
-
-    def partition_points(self, x, y):
-        """Partition an arbitrary set of points, defined by `x` and `y`
-        coordinates, onto the Voronoi tessellation.
-        
-        This method uses :class:`scipy.spatial.cKDTree` to efficiently handle
-        Voronoi assignment.
-
-        :param x: array of point `x` coordinates
-        :param y: array of point `y` coordinates
-        :returns: ndarray of indices of Voronoi nodes
-        """
-        nodeData = np.hstack((self.nodeX, self.nodeY))
-        pointData = np.hstack((x, y))
-        tree = KDTree(nodeData)
-        distances, indices = tree.query(pointData, k=1)
-        return indices
-    
-    def plot_nodes(self, plotPath):
-        """Plots the points in each bin as a different colour"""
-        from matplotlib.backends.backend_pdf \
-                import FigureCanvasPdf as FigureCanvas
-        from matplotlib.figure import Figure
-        
-        fig = Figure(figsize=(6, 4))
-        canvas = FigureCanvas(fig)
-        ax = fig.add_subplot(111)
-        ax.plot(self.xNode, self.yNode, 'ok')
-        canvas.print_figure(plotPath)

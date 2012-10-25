@@ -112,8 +112,8 @@ class CVTessellation(object):
         yxNode = np.hstack(self.yNode, self.xNode)
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
-        self.segmap = griddata(yxNode, self.vBinNum, (xgrid, ygrid),
-                method='nearest')
+        self.segmap = griddata(yxNode, np.arange(0, self.yNode.shape[0]),
+                (xgrid, ygrid), method='nearest')
 
     def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm with an accellerated ctypes code.

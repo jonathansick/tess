@@ -10,6 +10,7 @@ import os
 import ctypes
 import numpy as np
 import scipy.interpolate.griddata as griddata
+import scipy.spatial.cKDTree as KDTree
 
 from ctypes import c_double, c_long, POINTER
 
@@ -270,6 +271,23 @@ class CVTessellation(object):
             if len(ind) > 0:
                 nodeWeights[i] = np.sum(self.densPoints[ind])
         return nodeWeights
+
+    def partition_points(self, x, y):
+        """Partition an arbitrary set of points, defined by `x` and `y`
+        coordinates, onto the Voronoi tessellation.
+        
+        This method uses :class:`scipy.spatial.cKDTree` to efficiently handle
+        Voronoi assignment.
+
+        :param x: array of point `x` coordinates
+        :param y: array of point `y` coordinates
+        :returns: ndarray of indices of Voronoi nodes
+        """
+        nodeData = np.hstack((self.nodeX, self.nodeY))
+        pointData = np.hstack((x, y))
+        tree = KDTree(nodeData)
+        distances, indices = tree.query(pointData, k=1)
+        return indices
     
     def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour"""

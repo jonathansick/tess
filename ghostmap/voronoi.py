@@ -64,8 +64,25 @@ class VoronoiTessellation(object):
         
         :returns: The segmentation map array, `segmap`.
         """
+        self.segmap = self.render_voronoi_field(np.arange(0,
+            self.yNode.shape[0]), dtype=np.int)
+        return self.segmap
+
+    def render_voronoi_field(self, nodeValues):
+        """Renders the Voronoi field onto the pixel context with the given
+        `nodeValues` for each Voronoi cell.
+
+        .. note:: Must set the pixel grid context with either
+           :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!
+
+        :param nodeValues: 1D array of values for Voronoi nodes (must be same
+            length as :attr:`self.xNode` and :attr:`self.xNode`.
+        :returns: 2D array (image) of Voronoi field.
+        """
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
+        assert len(nodeValues) == len(self.xNode), "Not the same number of" \
+                " node values as nodes!"
         xgrid = np.arange(self.xlim[0], self.xlim[1])
         ygrid = np.arange(self.ylim[0], self.ylim[1])
         # Package xNode and yNode into Nx2 array
@@ -73,8 +90,7 @@ class VoronoiTessellation(object):
         yxNode = np.hstack(self.yNode, self.xNode)
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
-        self.segmap = griddata(yxNode, np.arange(0, self.yNode.shape[0]),
-                (xgrid, ygrid), method='nearest')
+        return griddata(yxNode, (xgrid, ygrid), method='nearest')
 
     def save_segmap(self, fitsPath):
         """Convenience wrapper to :meth:`make_segmap` that saves the
@@ -175,7 +191,7 @@ class VoronoiTessellation(object):
         if self.cellAreas is None:
             self.compute_cell_areas(flagmap=flagmap)
         return self.sum_cell_point_mass(x, y, mass=mass) / self.cellAreas
-    
+
     def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour"""
         from matplotlib.backends.backend_pdf \

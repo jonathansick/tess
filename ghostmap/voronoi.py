@@ -68,7 +68,7 @@ class VoronoiTessellation(object):
         """
         self.segmap = self.render_voronoi_field(
             np.arange(0, self.yNode.shape[0]))
-        print "segmap.shape", self.segmap
+        print "segmap.shape", self.segmap.shape
         return self.segmap
 
     def render_voronoi_field(self, nodeValues):
@@ -86,12 +86,15 @@ class VoronoiTessellation(object):
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
         assert len(nodeValues) == len(self.xNode), "Not the same number of" \
                 " node values as nodes!"
+
+        # Pixel grid to compute Voronoi field on
         ygrid, xgrid = np.meshgrid(np.arange(self.ylim[0], self.ylim[1]),
             np.arange(self.xlim[0], self.xlim[1]))
 
         # Package xNode and yNode into Nx2 array
         # y is first index if FITS data is also structured this way
         yxNode = np.vstack((self.yNode, self.xNode)).T
+
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
         return griddata(yxNode, nodeValues, (xgrid, ygrid), method='nearest')
@@ -161,8 +164,8 @@ class VoronoiTessellation(object):
         :param y: array of point `y` coordinates
         :returns: ndarray of indices of Voronoi nodes
         """
-        nodeData = np.hstack((self.nodeX, self.nodeY))
-        pointData = np.hstack((x, y))
+        nodeData = np.vstack((self.xNode, self.yNode)).T
+        pointData = np.vstack((x, y)).T
         tree = KDTree(nodeData)
         distances, indices = tree.query(pointData, k=1)
         return indices

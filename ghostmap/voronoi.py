@@ -146,6 +146,35 @@ class VoronoiTessellation(object):
         tree = KDTree(nodeData)
         distances, indices = tree.query(pointData, k=1)
         return indices
+
+    def sum_cell_point_mass(self, x, y, mass=None):
+        """Given a set of points with masses, computes the mass within
+        each Voronoi cell.
+        """
+        if mass is None:
+            mass = np.ones(len(x))
+        cellIndices = self.partition_points(x, y)
+        cellMass = np.bincount(cellIndices, weights=mass)
+        return cellMass
+
+    def cell_point_density(self, x, y, mass=None, flagmap=None):
+        """Compute density of points in each Voronoi cell.
+        Uses :meth:`sum_cell_point_mass`.
+
+        .. note:: This method calls :meth:`compute_cell_areas` if the cell
+           areas have not been compute yet. The `flagmap` parameter can be
+           passed to that method. If :attr:`self.cellAreas` is not `None`,
+           then new cell areas will *not* be computed.
+        
+        :param x: 1D array of point x-coordinates
+        :param y: 1D array of point y-coordinates
+        :param mass: (optional) 1D array of point masses (or *weights*).
+        :param flagmap: (optional) flagmap to be passed to
+                        :meth:`compute_cell_areas`.
+        """
+        if self.cellAreas is None:
+            self.compute_cell_areas(flagmap=flagmap)
+        return self.sum_cell_point_mass(x, y, mass=mass) / self.cellAreas
     
     def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour"""

@@ -68,6 +68,7 @@ class VoronoiTessellation(object):
         """
         self.segmap = self.render_voronoi_field(
             np.arange(0, self.yNode.shape[0]))
+        print "segmap.shape", self.segmap
         return self.segmap
 
     def render_voronoi_field(self, nodeValues):
@@ -85,17 +86,14 @@ class VoronoiTessellation(object):
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
         assert len(nodeValues) == len(self.xNode), "Not the same number of" \
                 " node values as nodes!"
-        xgrid = np.arange(self.xlim[0], self.xlim[1])
-        ygrid = np.arange(self.ylim[0], self.ylim[1])
+        ygrid, xgrid = np.meshgrid(np.arange(self.ylim[0], self.ylim[1]),
+            np.arange(self.xlim[0], self.xlim[1]))
+
         # Package xNode and yNode into Nx2 array
         # y is first index if FITS data is also structured this way
         yxNode = np.vstack((self.yNode, self.xNode)).T
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
-        print yxNode.shape
-        print nodeValues.shape
-        print xgrid.shape
-        print ygrid.shape
         return griddata(yxNode, nodeValues, (xgrid, ygrid), method='nearest')
 
     def save_segmap(self, fitsPath):
@@ -111,9 +109,9 @@ class VoronoiTessellation(object):
         if self.segmap is None:
             self.make_segmap()
         if self.header is not None:
-            pyfits.writeto(fitsPath, self.segmap, self.header)
+            pyfits.writeto(fitsPath, self.segmap, self.header, clobber=True)
         else:
-            pyfits.writeto(fitsPath, self.segmap)
+            pyfits.writeto(fitsPath, self.segmap, clobber=True)
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the

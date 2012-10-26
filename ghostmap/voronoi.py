@@ -67,8 +67,8 @@ class VoronoiTessellation(object):
         else:
             pyfits.writeto(fitsPath, self.segmap)
 
-    def compute_cell_areas(self):
-        """Compute the areas of Voronoi cells; result in stored in the
+    def compute_cell_areas(self, flagmap=None):
+        """Compute the areas of Voronoi cells; result is stored in the
         `self.cellAreas` attribute.
 
         .. note:: This method requires that the segmentation map is computed
@@ -78,10 +78,28 @@ class VoronoiTessellation(object):
            cell value. I'd prefer to calculate these from simple geometry,
            but no good python packages exist for defining Voronoi cell
            polygons.
+
+        :param flagmap: Any pixels in the flagmap with
+            values greater than zero will be omitted from the area count.
+            Thus the cell areas will report *useable* pixel areas, rather
+            than purely geometric areas. This is useful to avoid bias in
+            density maps due to 'bad' pixels.
+        :type flagmap: 2D `ndarray` with same shape as the pixel context
+            (*i.e.,* :attr:`self.segmap`).
+        :returns: ndarray of cell areas (square pixels). This array is also
+            stored as :attr:`self.cellAreas`.
         """
-        assert self.segmap is not None, "Compute a segmentation map with first"
-        pixelCounts = np.bincount(self.segmap.ravel())
+        assert self.segmap is not None, "Compute a segmentation map first"
+        
+        if flagmap is not None:
+            # If a flagmap is available, flagged pixels are set to NaN
+            _segmap = self.segmap.copy()
+            _segmap[flagmap > 0] = np.nan
+        else:
+            _segmap = self.segmap
+        pixelCounts = np.bincount(_segmap.ravel())
         self.cellAreas = pixelCounts
+        return self.cellAreas
 
     def get_nodes(self):
         """Returns the x and y positions of the Voronoi nodes."""

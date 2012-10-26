@@ -8,8 +8,8 @@ Representation of Voronoi Tessellations in ghostmap.
 
 import os
 import numpy as np
-import scipy.interpolate.griddata as griddata
-import scipy.spatial.cKDTree as KDTree
+from scipy.interpolate import griddata
+from scipy.spatial import KDTree
 
 
 class VoronoiTessellation(object):
@@ -72,8 +72,8 @@ class VoronoiTessellation(object):
         """Renders the Voronoi field onto the pixel context with the given
         `nodeValues` for each Voronoi cell.
 
-        .. note:: Must set the pixel grid context with either
-           :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!
+        .. note:: Must set the pixel grid context with
+           either :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!
 
         :param nodeValues: 1D array of values for Voronoi nodes (must be same
             length as :attr:`self.xNode` and :attr:`self.xNode`.

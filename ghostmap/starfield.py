@@ -156,8 +156,7 @@ class StarField(object):
         self.generator.generate_nodes(self.x, self.y, self.weight, targetMass)
         # Centroidal Voronoi Tessellation -- finds partition so that
         # each cells has approximately equal mass
-        self.cvt = CVTessellation()
-        self.cvt.tessellate(self.x, self.y, self.weight,
+        self.cvt = CVTessellation(self.x, self.y, self.weight,
                 preGenerator=self.generator)
         nodeX, nodeY = self.cvt.get_nodes()
         nodeWeight = self.cvt.get_node_weights()

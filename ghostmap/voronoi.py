@@ -66,8 +66,8 @@ class VoronoiTessellation(object):
         
         :returns: The segmentation map array, :attr:`segmap`.
         """
-        self.segmap = self.render_voronoi_field(np.arange(0,
-            self.yNode.shape[0]), dtype=np.int)
+        self.segmap = self.render_voronoi_field(
+            np.arange(0, self.yNode.shape[0]))
         return self.segmap
 
     def render_voronoi_field(self, nodeValues):
@@ -89,10 +89,14 @@ class VoronoiTessellation(object):
         ygrid = np.arange(self.ylim[0], self.ylim[1])
         # Package xNode and yNode into Nx2 array
         # y is first index if FITS data is also structured this way
-        yxNode = np.hstack(self.yNode, self.xNode)
+        yxNode = np.vstack((self.yNode, self.xNode)).T
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
-        return griddata(yxNode, (xgrid, ygrid), method='nearest')
+        print yxNode.shape
+        print nodeValues.shape
+        print xgrid.shape
+        print ygrid.shape
+        return griddata(yxNode, nodeValues, (xgrid, ygrid), method='nearest')
 
     def save_segmap(self, fitsPath):
         """Convenience wrapper to :meth:`make_segmap` that saves the
@@ -102,7 +106,8 @@ class VoronoiTessellation(object):
         """
         import pyfits
         fitsDir = os.path.dirname(fitsPath)
-        if not os.path.exists(fitsDir): os.makedirs(fitsDir)
+        if fitsDir is not '' and fitsDir is not os.path.exists(fitsDir):
+            os.makedirs(fitsDir)
         if self.segmap is None:
             self.make_segmap()
         if self.header is not None:

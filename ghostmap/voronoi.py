@@ -29,10 +29,12 @@ class VoronoiTessellation(object):
         used when rendering Voronoi fields or computing cell areas.
 
         Setting the pixel grid is a prerequistie for running the methods:
+
         - :meth:`make_segmap` and :meth:`save_segmap`
         - :meth:`compute_cell_areas`
 
-        :param xlim, ylim: tuples of (min, max) pixel ranges.
+        :param xlim: tuples of (min, max) pixel ranges.
+        :param ylim: tuples of (min, max) pixel ranges.
         """
         assert len(xlim) == 2, "xlim must be (min, max) sequence"
         assert len(ylim) == 2, "ylim must be (min, max) sequence"
@@ -44,7 +46,7 @@ class VoronoiTessellation(object):
         available. As a bonus, the FITS header will be used when saving
         any rendered fields to FITS.
         
-        .. note:: The header is available as the :attr:`self.header` attribute.
+        .. note:: The header is available as the :attr:`header` attribute.
 
         :param header: a PyFITS image header, defines area of rendered Voronoi
             images (e.g. segmentaion maps or fields).
@@ -59,10 +61,10 @@ class VoronoiTessellation(object):
         """Make a pixel segmentation map that paints the Voronoi bin number
         on Voronoi pixels.
         
-        The result is stored as the `segmap` attribute and returned to the
-        caller.
+        The result is stored as the :attr:`segmap` attribute and returned to
+        the caller.
         
-        :returns: The segmentation map array, `segmap`.
+        :returns: The segmentation map array, :attr:`segmap`.
         """
         self.segmap = self.render_voronoi_field(np.arange(0,
             self.yNode.shape[0]), dtype=np.int)
@@ -76,7 +78,7 @@ class VoronoiTessellation(object):
            either :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!
 
         :param nodeValues: 1D array of values for Voronoi nodes (must be same
-            length as :attr:`self.xNode` and :attr:`self.xNode`.
+            length as :attr:`xNode` and :attr:`xNode`.
         :returns: 2D array (image) of Voronoi field.
         """
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
@@ -121,14 +123,13 @@ class VoronoiTessellation(object):
            polygons.
 
         :param flagmap: Any pixels in the flagmap with
-            values greater than zero will be omitted from the area count.
-            Thus the cell areas will report *useable* pixel areas, rather
-            than purely geometric areas. This is useful to avoid bias in
-            density maps due to 'bad' pixels.
-        :type flagmap: 2D `ndarray` with same shape as the pixel context
-            (*i.e.,* :attr:`self.segmap`).
+            values greater than zero will be omitted from the
+            area count. Thus the cell areas will report *useable*
+            pixel areas, rather than purely geometric areas. This is useful
+            to avoid bias in density maps due to 'bad' pixels.
+        :type flagmap: 2D `ndarray`
         :returns: ndarray of cell areas (square pixels). This array is also
-            stored as :attr:`self.cellAreas`.
+           stored as :attr:`cellAreas`.
         """
         assert self.segmap is not None, "Compute a segmentation map first"
         
@@ -179,7 +180,7 @@ class VoronoiTessellation(object):
 
         .. note:: This method calls :meth:`compute_cell_areas` if the cell
            areas have not been compute yet. The `flagmap` parameter can be
-           passed to that method. If :attr:`self.cellAreas` is not `None`,
+           passed to that method. If :attr:`cellAreas` is not `None`,
            then new cell areas will *not* be computed.
         
         :param x: 1D array of point x-coordinates

@@ -1,5 +1,5 @@
-`ghostmap.lloyd`
-================
+The `ghostmap.cvtessellation` Module
+====================================
 
-.. automodule:: ghostmap.lloyd
+.. automodule:: ghostmap.cvtessellation
    :members:

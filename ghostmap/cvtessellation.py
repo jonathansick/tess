@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Python ctypes wrapper for _lloyd.c
+Centroidal Voronoi Tessellations (using Lloyd's algorithm).
+
+This module features Lloyd's algorithm implementions with ctypes code,
+and with pure Python. If the C extension cannot be loaded, the (slower)
+pure Python implmenetation is used.
 
 2012-09-27 - Created by Jonathan Sick
 """
@@ -51,6 +55,8 @@ except:
 class CVTessellation(VoronoiTessellation):
     """Uses Lloyd's algorithm to assign data points to Voronoi bins so that
     each bin has an equal mass.
+
+    Inherits from :class:`ghostmap.voronoi.VoronoiTessellation`.
 
     :param xPoints: array of cartesian `x` locations of each data point.
     :type xPoints: 1D `ndarray`

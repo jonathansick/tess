@@ -21,6 +21,7 @@ Contents
    
    vt_basics
    todo
+   voronoitessellation
    cvtessellation
 
 Inspiration

@@ -2,54 +2,13 @@
 # encoding: utf-8
 """
 Centroidal Voronoi Tessellations (using Lloyd's algorithm).
-
-This module features Lloyd's algorithm implementions with ctypes code,
-and with pure Python. If the C extension cannot be loaded, the (slower)
-pure Python implmenetation is used.
-
-2012-09-27 - Created by Jonathan Sick
 """
 
-import os
 import numpy as np
-
-import ctypes
-from ctypes import c_double, c_long, POINTER
 
 from voronoi import VoronoiTessellation
 
-
-def _load_function(dllName, fcnName, fcnArgTypes=None):
-    """Load the .so file with ctypes.
-    
-    This function is largely lifted from
-    https://gist.github.com/3313315
-    """
-    dllPath = os.path.join(os.path.dirname(__file__), dllName)
-    dll = ctypes.CDLL(dllPath, mode=ctypes.RTLD_GLOBAL)
-
-    # Get reference to function symbol in DLL
-    print dll.__dict__
-    # Note we use exec to dynamically write the code based on the
-    # user's `fcnName` input and save to variable func
-    func = None
-    exec "func = " + ".".join(("dll", fcnName))
-    print "loaded function", func
-
-    # Set call signature for safety
-    if fcnArgTypes is not None:
-        func.argtypes = fcnArgTypes
-
-    return func
-
-# Load ctypes Lloyd function
-try:
-    lloyd = _load_function("_lloyd.so", "lloyd",
-            [c_long, POINTER(c_double), POINTER(c_double),
-            POINTER(c_double), c_long,
-            POINTER(c_double), POINTER(c_double), POINTER(c_long)])
-except:
-    lloyd = None
+from lloyd import lloyd
 
 
 class CVTessellation(VoronoiTessellation):
@@ -71,13 +30,7 @@ class CVTessellation(VoronoiTessellation):
                             the data.
     :param useC: Set `False` to force use of pure-python Lloyd's algorithm
     """
-    def __init__(self, xPoints, yPoints, densPoints, preGenerator=None,
-            useC=True):
-        self.vBinNum = None  #: Array assigning input points to nodes indices
-        self._useC = useC
-        if lloyd is None:
-            # can't use ctypes lloyd because it failed to load
-            self._useC = False
+    def __init__(self, xPoints, yPoints, densPoints, preGenerator=None):
         xNode, yNode, vBinNum = self._tessellate(xPoints, yPoints, densPoints,
                 preGenerator=preGenerator)
         super(CVTessellation, self).__init__(xNode, yNode)
@@ -109,44 +62,10 @@ class CVTessellation(VoronoiTessellation):
             xNode = xPoints.copy()
             yNode = yPoints.copy()
 
-        if self._useC:
-            xNode, yNode, vBinNum = self._run_c_lloyds(xPoints, yPoints,
-                    densPoints, xNode, yNode)
-        else:
-            xNode, yNode, vBinNum = self._run_py_lloyds(xPoints, yPoints,
-                    densPoints, xNode, yNode)
-        return xNode, yNode, vBinNum
-
-    def _run_c_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
-        """Run Lloyd's algorithm with an accellerated ctypes code.
-
-        :param xPoints: array of cartesian `x` locations of each data point.
-        :param yPoints: array of cartesian `y` locations of each data point.
-        :param densPoints: array of the density of each point. For an equal-S/N
-            generator, this should be set to (S/N)**2. For an equal number
-            generator this can be simple an array of ones.
-        :param xNode: array of cartesian `x` locations of each node.
-        :param yNode: array of cartesian `y` locations of each node.
-        """
-        n = len(xPoints)
-        nNode = len(xNode)
-        x = xPoints.astype('float64')
-        x_ptr = x.ctypes.data_as(POINTER(c_double))
-        y = yPoints.astype('float64')
-        y_ptr = y.ctypes.data_as(POINTER(c_double))
-        w = densPoints.astype('float64')
-        w_ptr = w.ctypes.data_as(POINTER(c_double))
-        xNode = xNode.astype('float64')
-        xNode_ptr = xNode.ctypes.data_as(POINTER(c_double))
-        yNode = yNode.astype('float64')
-        yNode_ptr = yNode.ctypes.data_as(POINTER(c_double))
-        vBinNum = np.zeros(n).astype(np.int)
-        vBinNum_ptr = vBinNum.ctypes.data_as(POINTER(c_long))
-        retVal = lloyd(n, x_ptr, y_ptr, w_ptr,
-            nNode, xNode_ptr, yNode_ptr, vBinNum_ptr)
-        assert retVal == 1, "ctypes lloyd did not converge"
-        print "CVT Complete"
-        return xNode, yNode, vBinNum
+        xy = np.column_stack((xPoints, yPoints))
+        node_xy = np.column_stack((xNode, yNode))
+        node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
+        return node_xy[:, 0], node_xy[:, 1], v_bin_numbers
 
     def _run_py_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm in pure-python

@@ -105,16 +105,17 @@ class VoronoiTessellation(object):
 
         :param fitsPath: full filename destination of FITS file
         """
-        import pyfits
+        import astropy.io.fits
         fitsDir = os.path.dirname(fitsPath)
         if fitsDir is not '' and fitsDir is not os.path.exists(fitsDir):
             os.makedirs(fitsDir)
         if self.segmap is None:
             self.make_segmap()
         if self.header is not None:
-            pyfits.writeto(fitsPath, self.segmap, self.header, clobber=True)
+            astropy.io.fits.writeto(fitsPath, self.segmap, self.header,
+                    clobber=True)
         else:
-            pyfits.writeto(fitsPath, self.segmap, clobber=True)
+            astropy.io.fits.writeto(fitsPath, self.segmap, clobber=True)
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the

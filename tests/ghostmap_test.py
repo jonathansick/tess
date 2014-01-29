@@ -1,16 +1,14 @@
-import ghostmap
+import tess
 import numpy
-import pyfits
+import astropy.io.fits
 
 
 def saveFITS(array, path="test.fits"):
-    pyfits.writeto(path, array, clobber=True)
+    astropy.io.fits.writeto(path, array, clobber=True)
 
 def plot_vo(tri, colors=None):
     import matplotlib as mpl
-    # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    from matplotlib.backends.backend_pdf import FigureCanvasPdf as FigureCanvas
-    # from matplotlib.backends.backend_ps import FigureCanvasPS as FigureCanvas
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from matplotlib.figure import Figure
     
     fig = Figure(figsize=(4,4))
@@ -54,17 +52,17 @@ x = x[inRange]
 y = y[inRange]
 mass = numpy.ones(len(x))
 
-generator = ghostmap.EqualMassGenerator()
+generator = tess.EqualMassGenerator()
 generator.generate_nodes(x, y, None, 100) # bin 10 points together
-cvt = ghostmap.CVTessellation()
+cvt = tess.CVTessellation()
 cvt.tessellate(x, y, mass, preGenerator=generator)
 binX, binY = cvt.get_nodes()
 mass = numpy.ones(len(binX))
 
-tessellation = ghostmap.DelaunayTessellation(binX,binY)
-dtfe = ghostmap.DelaunayDensityEstimator(tessellation)
+tessellation = tess.DelaunayTessellation(binX,binY)
+dtfe = tess.DelaunayDensityEstimator(tessellation)
 density = dtfe.estimate_density(xRange, yRange, mass)
-renderman = ghostmap.FieldRenderer(tessellation)
+renderman = tess.FieldRenderer(tessellation)
 field = renderman.render_first_order_delaunay(density, xRange, yRange, 1, 1)
 saveFITS(field,path="test_delaunay.fits")
 triangulation = tessellation.get_triangulation()
@@ -75,5 +73,3 @@ saveFITS(zerothField, path="test_voronoi.fits")
 
 nnField = renderman.render_nearest_neighbours_delaunay(density, xRange, yRange, 1, 1)
 saveFITS(zerothField, path="test_nn.fits")
-
-

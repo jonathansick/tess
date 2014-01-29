@@ -10,7 +10,7 @@ History
 """
 
 import numpy as np
-import pyfits
+import astropy.io.fits
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -61,7 +61,7 @@ class StarField(object):
            Specifies the weight a given point should have relative to others.
            This might be used to correct for completeness from artificial
            star testing. e.g., weight = 1/completeness
-        header : a pyfits.Header instance (optional)
+        header : a astropy.io.fits.Header instance (optional)
            A header instance, in the same frame as the x & y pixel coordinates.
            This is used by the `save_fits()` method to embed a proper WCS
            in the field rendering.
@@ -176,9 +176,9 @@ class StarField(object):
     def save_fits(self, fitsPath):
         """Save the density field as a FITS image to `fitsPath`."""
         if self.header is None:
-            pyfits.writeto(fitsPath, self.fieldDensity, clobber=True)
+            astropy.io.fits.writeto(fitsPath, self.fieldDensity, clobber=True)
         else:
-            pyfits.writeto(fitsPath, self.fieldDensity, self.header,
+            astropy.io.fits.writeto(fitsPath, self.fieldDensity, self.header,
                            clobber=True)
 
     def plot_voronoi(self, plotPath, colors=[(0., 0., 0., 1.)]):

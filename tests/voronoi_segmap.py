@@ -8,10 +8,10 @@ bins.
 """
 
 import numpy as np
-import pyfits
+import astropy.io.fits
 
-from ghostmap import ghostmap
-from ghostmap.cvtessellation import CVTessellation
+from tess import ghostmap
+from tess.cvtessellation import CVTessellation
 
 
 def main():
@@ -43,7 +43,7 @@ def main():
     cvt.compute_cell_areas()
     cellDensity = cvt.cell_point_density(x, y, mass=weight)
     densityField = cvt.render_voronoi_field(cellDensity)
-    pyfits.writeto("voronoi_densitymap.fits", densityField, clobber=True)
+    astropy.io.fits.writeto("voronoi_densitymap.fits", densityField, clobber=True)
 
     # Save CSV table of Voronoi bins, areas, and densities
     save_cell_table(cvt, cellDensity)

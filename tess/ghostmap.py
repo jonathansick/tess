@@ -1,18 +1,6 @@
 import numpy as np
 
 
-class PointList2D(object):
-    """Abstract class for a set of data points in 2D space."""
-    def __init__(self):
-        #super(PointList, self).__init__()
-        # np arrays of the point locations
-        self.x = None
-        self.y = None
-        self.z = None # the value of the point
-        
-        self.xRange = [None, None]
-        self.yRange = [None, None]
-
 class AccretionGenerator(object):
     """Baseclass for EqualSNGenerator and EqualMassGeneator"""
     def __init__(self):

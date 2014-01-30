@@ -79,7 +79,7 @@ except ImportError: # compatibility with Astropy 0.2 - can be removed in cases
     package_info['packages'] = filter_packages(find_packages())
 
     # Additional C extensions that are not Cython-based should be added here.
-    package_info['ext_modules'] = ['cextern/_llyod.c']
+    package_info['ext_modules'] = []
 
     # A dictionary to keep track of all package data to install
     package_info['package_data'] = {PACKAGENAME: ['data/*']}

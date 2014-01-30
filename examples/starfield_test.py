@@ -7,7 +7,7 @@ Mock data test script for StarField class
 """
 
 import numpy as np
-from ghostmap.starfield import StarField
+from tess.starfield import StarField
 
 
 def main():

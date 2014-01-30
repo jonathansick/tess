@@ -10,7 +10,7 @@ bins.
 import numpy as np
 import astropy.io.fits
 
-from tess import ghostmap
+from tess.ghostmap import EqualMassGenerator
 from tess.cvtessellation import CVTessellation
 
 
@@ -29,7 +29,7 @@ def main():
 
     # Centroidal Voronoi Tessellation, meeting a target cell mass
     targetMass = 20
-    gen = ghostmap.EqualMassGenerator()
+    gen = EqualMassGenerator()
     gen.generate_nodes(x, y, weight, targetMass)
     cvt = CVTessellation(x, y, weight, preGenerator=gen)
 

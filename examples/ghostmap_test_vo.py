@@ -14,7 +14,11 @@ import matplotlib.nxutils as nxutils
 import Polygon
 import Polygon.Utils
 
-import ghostmap
+from tess.ghostmap import EqualMassGenerator
+from tess.delaunay import DelaunayTessellation, DelaunayDensityEstimator, \
+        FieldRenderer
+from tess.cvtessellation import CVTessellation
+
 from convexhull import convex_hull
 
 def main():
@@ -41,17 +45,17 @@ def setup():
     val = 1./numpy.sqrt(2*numpy.pi*sigma**2.)*numpy.exp(-(x-250.)**2./2./sigma**2.)*numpy.exp(-(y-250.)**2./2./sigma**2.)
     mass = numpy.ones([len(x)])
 
-    generator = ghostmap.EqualMassGenerator()
+    generator = EqualMassGenerator()
     generator.generateNodes(x, y, None, 10) # bin 10 points together
-    cvt = ghostmap.CVTessellation()
+    cvt = CVTessellation()
     cvt.tessellate(x, y, mass, preGenerator=generator)
     binX, binY = cvt.getNodes()
     mass = numpy.ones([len(binX)])
 
-    tessellation = ghostmap.DelaunayTessellation(binX,binY)
-    dtfe = ghostmap.DelaunayDensityEstimator(tessellation)
+    tessellation = DelaunayTessellation(binX,binY)
+    dtfe = DelaunayDensityEstimator(tessellation)
     density = dtfe.estimateDensity(xRange, yRange, mass)
-    renderman = ghostmap.FieldRenderer(tessellation)
+    renderman = FieldRenderer(tessellation)
     field = renderman.renderFirstOrderDelaunay(density, xRange, yRange, 1, 1)
     # saveFITS(field,path="test_bin.fits")
     triangulation = tessellation.getTriangulation()

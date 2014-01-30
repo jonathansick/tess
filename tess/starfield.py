@@ -15,6 +15,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 import ghostmap
+import delaunay
 from cvtessellation import CVTessellation
 
 
@@ -161,13 +162,13 @@ class StarField(object):
         nodeX, nodeY = self.cvt.get_nodes()
         nodeWeight = self.cvt.get_node_weights()
         # Build a Delaunay tessellation using the CVT nodes
-        self.tessellation = ghostmap.DelaunayTessellation(nodeX, nodeY)
+        self.tessellation = delaunay.DelaunayTessellation(nodeX, nodeY)
         # DTFE Density Estimator -- produces density in stars per pix^2
-        dtfe = ghostmap.DelaunayDensityEstimator(self.tessellation)
+        dtfe = delaunay.DelaunayDensityEstimator(self.tessellation)
         nodeDensity = dtfe.estimate_density(self.xRange, self.yRange,
                 nodeWeight)
         # Render the density by interpolating over the tessellation
-        renderman = ghostmap.FieldRenderer(self.tessellation)
+        renderman = delaunay.FieldRenderer(self.tessellation)
         fieldDensity = renderman.render_first_order_delaunay(nodeDensity,
                 self.xRange, self.yRange, 1, 1)
         print "fieldDensity shape", fieldDensity.shape

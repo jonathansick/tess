@@ -12,7 +12,7 @@ Dataset: HST_10584_18_ACS_WFC_F606W_F435W
 import numpy as np
 import pyfits
 
-from ghostmap.starfield import StarField
+from tess.starfield import StarField
 
 
 def main():

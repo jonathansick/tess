@@ -6,6 +6,9 @@ from cython.view cimport array as cvarray
 import numpy as np
 from scipy.spatial import cKDTree
 
+cdef extern from "math.h":
+    double sqrt(double x)
+
 
 cdef class PointAccretor:
     cdef double [:, :] xy
@@ -107,6 +110,38 @@ cdef class EqualMassAccretor(PointAccretor):
         for i in xrange(n):
             total_mass += self.w[current_bin[i]]
         if total_mass >= self.target_mass:
+            return True
+        else:
+            return False
+
+
+cdef class EqualSNAccretor(PointAccretor):
+    """Handles point accretion so each bin has roughly equal S/N.
+    
+    Bin centroids will be weighted by point signal.
+    """
+    cdef double target_sn
+    cdef double [:] variance
+
+    def __init__(self, double [:, :] xy, double [:] signal, double [:] noise,
+            double target_sn):
+        cdef long i
+        self.target_sn = target_sn
+        self.xy = xy
+        self.w = signal
+        self.variance = np.empty(signal.shape[0], dtype=float)
+        for i in xrange(signal.shape[0]):
+            self.variance[i] = noise[i] * noise[i]
+
+    cpdef is_bin_full(self, long [:] current_bin, long n):
+        cdef double total_variance = 0.
+        cdef double total_signal = 0.
+        cdef double total_sn = 0.
+        for i in xrange(n):
+            total_signal += self.w[current_bin[i]]
+            total_variance += self.variance[current_bin[i]]
+        total_sn = total_signal / sqrt(total_variance) 
+        if total_sn >= self.target_sn:
             return True
         else:
             return False

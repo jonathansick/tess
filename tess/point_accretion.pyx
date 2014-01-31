@@ -63,7 +63,7 @@ cdef class PointAccretor:
             node_xy[j, 1] /= node_m[j]
         return node_xy
 
-    cpdef centroid(self, long [:] inds, long n_points):
+    cdef centroid(self, long [:] inds, long n_points):
         """Compute centroid of points given by the index array ``inds``."""
         cdef double [:] xyc = np.zeros(2, dtype=float)
         cdef double mass_sum = 0
@@ -75,7 +75,7 @@ cdef class PointAccretor:
         xyc[1] /= mass_sum
         return xyc
 
-    cpdef long find_closest_unbinned(self, xyc):
+    cdef long find_closest_unbinned(self, xyc):
         # Build coordinates of all unbinned points
         cdef double [:, :] uxy = np.empty((self._n_unbinned, 2), dtype=float)
         cdef long [:] orig_id = np.empty(self._n_unbinned, dtype=int)

@@ -12,12 +12,13 @@ cdef class PointAccretor:
     cdef double [:] w
     cdef long [:] bin_nums  # bin ID of each point
     cdef long _n_unbinned  # count unbinned points
+    cdef long n_bins  # number of bins
 
     cpdef accrete(self):
         cdef long [:] current_bin  # indices of items in current bin
         cdef double [:] current_bin_xy  # centroid of current bin
         cdef long current_bin_count = 0  # number of items in current bin
-        cdef long current_bin_num = 0  # ID of current bin
+        n_bins = 0
         self._n_unbinned = self.xy.shape[0]  # count unbinned points
         self.bin_nums = np.zeros(self.xy.shape[0], dtype=int)
 
@@ -26,12 +27,11 @@ cdef class PointAccretor:
 
         while self._n_unbinned > 0:
             # Initialize bin
-            current_bin_num += 1
+            n_bins += 1
             idx = self.find_closest_unbinned(xyc)
             current_bin = np.zeros(self._n_unbinned, dtype=int)
             current_bin[0] = idx
-            current_bin_num += 1
-            self.bin_nums[idx] = current_bin_num
+            self.bin_nums[idx] = n_bins
             current_bin_count = 1
             self._n_unbinned -= 1
             xyc[0] = self.xy[idx, 0]
@@ -44,7 +44,7 @@ cdef class PointAccretor:
                 current_bin_count += 1
                 self._n_unbinned -= 1
                 current_bin[current_bin_count - 1] = idx
-                self.bin_nums[idx] = current_bin_num
+                self.bin_nums[idx] = n_bins
                 xyc = self.centroid(current_bin, current_bin_count)
 
     cpdef centroid(self, long [:] inds, long n_points):

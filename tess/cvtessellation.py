@@ -30,13 +30,13 @@ class CVTessellation(VoronoiTessellation):
                             the data.
     :param useC: Set `False` to force use of pure-python Lloyd's algorithm
     """
-    def __init__(self, xPoints, yPoints, densPoints, preGenerator=None):
+    def __init__(self, xPoints, yPoints, densPoints, node_xy=None):
         xNode, yNode, vBinNum = self._tessellate(xPoints, yPoints, densPoints,
-                preGenerator=preGenerator)
+                node_xy=node_xy)
         super(CVTessellation, self).__init__(xNode, yNode)
         self.vBinNum = vBinNum
     
-    def _tessellate(self, xPoints, yPoints, densPoints, preGenerator=None):
+    def _tessellate(self, xPoints, yPoints, densPoints, node_xy=None):
         """ Computes the centroidal voronoi tessellation itself.
 
         :param xPoints: array of cartesian `x` locations of each data point.
@@ -54,16 +54,10 @@ class CVTessellation(VoronoiTessellation):
         self.densPoints = densPoints
         
         # Obtain pre-generator node coordinates
-        if preGenerator is not None:
-            xNode, yNode = preGenerator.get_nodes()
-        else:
-            # Make a null set of generators,
-            # same as the Voronoi points themselves
-            xNode = xPoints.copy()
-            yNode = yPoints.copy()
+        if not node_xy is not None:
+            node_xy = np.column_stack((xPoints.copy(), yPoints.copy()))
 
         xy = np.column_stack((xPoints, yPoints))
-        node_xy = np.column_stack((xNode, yNode))
         node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
         return node_xy[:, 0], node_xy[:, 1], v_bin_numbers
 

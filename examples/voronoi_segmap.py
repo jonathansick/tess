@@ -34,26 +34,25 @@ def main():
     gen.accrete()
     node_xy = gen.nodes()
     print "node_xy.shape", node_xy.shape
-    # TODO change preGenerator to just take x, y positions of nodes
-    # cvt = CVTessellation(x, y, weight, preGenerator=gen)
+    cvt = CVTessellation(x, y, weight, node_xy=node_xy)
 
-    # # Set up the pixel grid (or use set_fits_grid if using a FITS image)
-    # cvt.set_pixel_grid(xRange, yRange)
+    # Set up the pixel grid (or use set_fits_grid if using a FITS image)
+    cvt.set_pixel_grid(xRange, yRange)
 
-    # # Map of Voronoi cell IDs (saving to FITS)
-    # cvt.save_segmap("voronoi_segmap.fits")
+    # Map of Voronoi cell IDs (saving to FITS)
+    cvt.save_segmap("voronoi_segmap.fits")
 
-    # # Compute Density of Points and save to FITS
-    # cvt.compute_cell_areas()
-    # cellDensity = cvt.cell_point_density(x, y, mass=weight)
-    # densityField = cvt.render_voronoi_field(cellDensity)
-    # astropy.io.fits.writeto("voronoi_densitymap.fits", densityField, clobber=True)
+    # Compute Density of Points and save to FITS
+    cvt.compute_cell_areas()
+    cellDensity = cvt.cell_point_density(x, y, mass=weight)
+    densityField = cvt.render_voronoi_field(cellDensity)
+    astropy.io.fits.writeto("voronoi_densitymap.fits", densityField, clobber=True)
 
-    # # Save CSV table of Voronoi bins, areas, and densities
-    # save_cell_table(cvt, cellDensity)
+    # Save CSV table of Voronoi bins, areas, and densities
+    save_cell_table(cvt, cellDensity)
 
-    # # Save a list of points with assignment to Voronoi cells
-    # save_cell_membership(cvt, x, y)
+    # Save a list of points with assignment to Voronoi cells
+    save_cell_membership(cvt, x, y)
 
 
 def save_cell_table(cvt, cellDensity):

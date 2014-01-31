@@ -18,7 +18,7 @@ cdef class PointAccretor:
         cdef long [:] current_bin  # indices of items in current bin
         cdef double [:] current_bin_xy  # centroid of current bin
         cdef long current_bin_count = 0  # number of items in current bin
-        n_bins = 0
+        self.n_bins = 0
         self._n_unbinned = self.xy.shape[0]  # count unbinned points
         self.bin_nums = np.zeros(self.xy.shape[0], dtype=int)
 
@@ -27,11 +27,11 @@ cdef class PointAccretor:
 
         while self._n_unbinned > 0:
             # Initialize bin
-            n_bins += 1
+            self.n_bins += 1
             idx = self.find_closest_unbinned(xyc)
             current_bin = np.zeros(self._n_unbinned, dtype=int)
             current_bin[0] = idx
-            self.bin_nums[idx] = n_bins
+            self.bin_nums[idx] = self.n_bins  # use n_bins as a bin ID
             current_bin_count = 1
             self._n_unbinned -= 1
             xyc[0] = self.xy[idx, 0]
@@ -44,8 +44,24 @@ cdef class PointAccretor:
                 current_bin_count += 1
                 self._n_unbinned -= 1
                 current_bin[current_bin_count - 1] = idx
-                self.bin_nums[idx] = n_bins
+                self.bin_nums[idx] = self.n_bins
                 xyc = self.centroid(current_bin, current_bin_count)
+
+    cpdef nodes(self):
+        """Return the x,y coordinates of the node centroids."""
+        cdef long i, j
+        cdef double [:, :] node_xy = np.zeros((self.n_bins, 2), dtype=float)
+        cdef double [:] node_m = np.zeros(self.n_bins, dtype=float)
+        print self.n_bins
+        for i in xrange(self.xy.shape[0]):
+            j = self.bin_nums[i] - 1  # for zero-based index
+            node_xy[j, 0] += self.xy[i, 0] * self.w[i]
+            node_xy[j, 1] += self.xy[i, 1] * self.w[i]
+            node_m[j] += self.w[i]
+        for j in xrange(self.n_bins):
+            node_xy[j, 0] /= node_m[j]
+            node_xy[j, 1] /= node_m[j]
+        return node_xy
 
     cpdef centroid(self, long [:] inds, long n_points):
         """Compute centroid of points given by the index array ``inds``."""

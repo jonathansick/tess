@@ -14,6 +14,8 @@ def main():
     xy = np.random.randn(n_points, 2)
     accretor = EqualMassAccretor(xy, mass, 5.)
     accretor.accrete()
+    node_xy = accretor.nodes()
+    print node_xy.shape
 
 
 if __name__ == '__main__':

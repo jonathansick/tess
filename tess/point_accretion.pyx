@@ -16,6 +16,7 @@ cdef class PointAccretor:
     cdef long [:] bin_nums  # bin ID of each point
     cdef long _n_unbinned  # count unbinned points
     cdef long n_bins  # number of bins
+    cdef object tree  # KD Tree of points
 
     cpdef accrete(self):
         cdef long [:] current_bin  # indices of items in current bin
@@ -28,10 +29,13 @@ cdef class PointAccretor:
         # Seed position is centroid of distribution
         xyc = self.centroid(np.arange(0, self._n_unbinned), self._n_unbinned)
 
+        # Build a KDTree of all points
+        self.tree = cKDTree(self.xy)
+
         while self._n_unbinned > 0:
             # Initialize bin
             self.n_bins += 1
-            idx = self.find_closest_unbinned(xyc)
+            idx = self.tree.query(xyc, k=1)[1]
             current_bin = np.zeros(self._n_unbinned, dtype=int)
             current_bin[0] = idx
             self.bin_nums[idx] = self.n_bins  # use n_bins as a bin ID
@@ -42,7 +46,7 @@ cdef class PointAccretor:
             
             while not self.is_bin_full(current_bin, current_bin_count) \
                     and self._n_unbinned > 0:
-                idx = self.find_closest_unbinned(xyc)
+                idx = self.find_closest_unbinned(xyc, current_bin_count)
                 # Add this point to the bin
                 current_bin_count += 1
                 self._n_unbinned -= 1
@@ -78,22 +82,31 @@ cdef class PointAccretor:
         xyc[1] /= mass_sum
         return xyc
 
-    cdef long find_closest_unbinned(self, xyc):
-        # Build coordinates of all unbinned points
-        cdef double [:, :] uxy = np.empty((self._n_unbinned, 2), dtype=float)
-        cdef long [:] orig_id = np.empty(self._n_unbinned, dtype=int)
-        cdef long j = 0
-        for i in xrange(self.xy.shape[0]):
-            if self.bin_nums[i] == 0:  # is unbinned
-                uxy[j, 0] = self.xy[i, 0]
-                uxy[j, 1] = self.xy[i, 1]
-                orig_id[j] = i
-                j += 1
-
-        # Use a KD tree to find point closest to xc
-        tree = cKDTree(uxy)
-        idx = tree.query(xyc, k=1)[1]
-        return orig_id[<long>idx]
+    cdef long find_closest_unbinned(self, double [:] xyc, long n_binned):
+        cdef int keep_going
+        cdef long idx, i, j
+        # n is number of points find around node; hopefully enough so find
+        # unbinned points
+        cdef long n = 10 + n_binned
+        if n > self.xy.shape[0]:
+            n = self.xy.shape[0]
+        keep_going = 1
+        while keep_going:
+            if n == self.xy.shape[0]:
+                keep_going = 0
+            indices = self.tree.query(xyc, k=n)[1]
+            # Find first index not binned already
+            # implicity assumes indices is sorted by distance for xyc
+            for i in xrange(n):
+                idx = indices[i]
+                if self.bin_nums[idx] > 0:
+                    continue
+                else:
+                    return idx
+            # If here, no matches; expand number of points to return
+            n = 10 + n
+            if n > self.xy.shape[0]:
+                n = self.xy.shape[0]
 
 
 cdef class EqualMassAccretor(PointAccretor):

@@ -33,7 +33,10 @@ def main():
     gen = EqualMassAccretor(xy, weight, target_mass)
     gen.accrete()
     node_xy = gen.nodes()
-    print "node_xy.shape", node_xy.shape
+    print "Original node_xy.shape", node_xy.shape
+    gen.cleanup()  # re-allocate failed bins
+    node_xy = gen.nodes()
+    print "Cleaned node_xy.shape", node_xy.shape
     cvt = CVTessellation(x, y, weight, node_xy=node_xy)
 
     # Set up the pixel grid (or use set_fits_grid if using a FITS image)

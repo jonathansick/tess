@@ -14,17 +14,22 @@ cdef class PointAccretor:
     cdef double [:, :] xy
     cdef double [:] w
     cdef long [:] bin_nums  # bin ID of each point
+    cdef long [:] good_bin  # 1 if a well-made bin
     cdef long _n_unbinned  # count unbinned points
     cdef long n_bins  # number of bins
     cdef object tree  # KD Tree of points
 
     cpdef accrete(self):
+        """Run the point accretion algorithm to build bins of points of a
+        certain mass or quality.
+        """
         cdef long [:] current_bin  # indices of items in current bin
         cdef double [:] current_bin_xy  # centroid of current bin
         cdef long current_bin_count = 0  # number of items in current bin
         self.n_bins = 0
         self._n_unbinned = self.xy.shape[0]  # count unbinned points
         self.bin_nums = np.zeros(self.xy.shape[0], dtype=int)
+        self.good_bin = np.zeros(self.xy.shape[0], dtype=int)
 
         # Seed position is centroid of distribution
         xyc = self.centroid(np.arange(0, self._n_unbinned), self._n_unbinned)
@@ -38,12 +43,13 @@ cdef class PointAccretor:
             idx = self.tree.query(xyc, k=1)[1]
             current_bin = np.zeros(self._n_unbinned, dtype=int)
             current_bin[0] = idx
-            self.bin_nums[idx] = self.n_bins  # use n_bins as a bin ID
+            self.bin_nums[<long>idx] = self.n_bins  # use n_bins as a bin ID
             current_bin_count = 1
             self._n_unbinned -= 1
             xyc[0] = self.xy[idx, 0]
             xyc[1] = self.xy[idx, 1]
             
+            # Accrete points
             while not self.is_bin_full(current_bin, current_bin_count) \
                     and self._n_unbinned > 0:
                 idx = self.find_closest_unbinned(xyc, current_bin_count)
@@ -53,6 +59,10 @@ cdef class PointAccretor:
                 current_bin[current_bin_count - 1] = idx
                 self.bin_nums[idx] = self.n_bins
                 xyc = self.centroid(current_bin, current_bin_count)
+
+            # Check if the bin is complete
+            if self.is_bin_full(current_bin, current_bin_count):
+                self.good_bin[self.n_bins - 1] = 1
 
     cpdef nodes(self):
         """Return the x,y coordinates of the node centroids."""
@@ -107,6 +117,58 @@ cdef class PointAccretor:
             n = 10 + n
             if n > self.xy.shape[0]:
                 n = self.xy.shape[0]
+
+    cpdef cleanup(self):
+        """Clean up bins that failed to meet quality requirements by
+        re-allocating their points to other bins.
+        """
+        cdef long i, j, current_bin_count, n_good_bins, current_bin_num
+        cdef long [:] current_bin  # indices of items in current bin
+        i = 0
+        n_good_bins = 0
+        while i < self.n_bins:
+            if self.good_bin[i]:
+                n_good_bins += 1
+            else:
+                # Need to re-allocate this bin.
+                # List all points in this bin
+                current_bin_count = 0
+                current_bin = np.zeros(self.xy.shape[0], dtype=int)
+                current_bin_num = i + 1
+                for j in xrange(self.xy.shape[0]):
+                    if self.bin_nums[j] == current_bin_num:
+                        current_bin[current_bin_count] = j
+                        current_bin_count += 1
+                # Redistribute the points
+                self._redistribute_points(i, current_bin, current_bin_count)
+                i -= 1  # since we removed a bin
+            i += 1
+
+    cpdef _redistribute_points(self, long bin_index, long [:] current_bin,
+            long current_bin_count):
+        cdef long j, k, old_bin_num
+        cdef double [:, :] node_xy = self.nodes()  # node centroids
+        cdef double [:] xyc = np.empty(2, dtype=float)
+        node_tree = cKDTree(node_xy)
+        for j in xrange(current_bin_count):
+            k = current_bin[j]
+            # re-allocate point
+            xyc[0] = self.xy[k, 0]
+            xyc[1] = self.xy[k, 1]
+            indices = node_tree.query(xyc, k=2)[1]
+            if indices[0] == bin_index:
+                # Use the other index instead; don't allocate back to itself
+                self.bin_nums[j] = indices[1] + 1  # since bin_nums is 1-based
+            else:
+                # First index is different+okay
+                self.bin_nums[j] = indices[0] + 1  # since bin_nums is 1-based
+
+        # Re-number all bins that come after bin_index
+        old_bin_num = bin_index + 1
+        for j in xrange(self.xy.shape[0]):
+            if self.bin_nums[j] >= old_bin_num:
+                self.bin_nums[j] -= 1
+        self.n_bins -= 1
 
 
 cdef class EqualMassAccretor(PointAccretor):

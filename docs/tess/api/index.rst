@@ -6,5 +6,6 @@ API Reference
 
    cvtessellation
    delaunay
-   starfield
    voronoi
+   pixel_accretion
+   starfield

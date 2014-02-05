@@ -11,6 +11,9 @@ cdef extern from "math.h":
 
 
 cdef class PointAccretor:
+    """Baseclass for binning points by accreting points closest to bin
+    centroids.
+    """
     cdef double [:, :] xy
     cdef double [:] w
     cdef long [:] bin_nums  # bin ID of each point
@@ -81,7 +84,16 @@ cdef class PointAccretor:
         return node_xy
 
     cdef centroid(self, long [:] inds, long n_points):
-        """Compute centroid of points given by the index array ``inds``."""
+        """Compute centroid of points given by the index array ``inds``.
+        
+        Parameters
+        ----------
+        inds : ndarray
+            Array of indices of points in the ``self.xy`` array that are
+            in the current bin.
+        n_points : int
+            Number of points in the current bin.
+        """
         cdef double [:] xyc = np.zeros(2, dtype=float)
         cdef double mass_sum = 0
         for i in xrange(n_points):
@@ -93,6 +105,17 @@ cdef class PointAccretor:
         return xyc
 
     cdef long find_closest_unbinned(self, double [:] xyc, long n_binned):
+        """Returns the index of the unbinned point closest to the given
+        coordinate ``xyc``.
+
+        Parameters
+        ----------
+        xyc : ndarray
+            ``(x, y)`` coordinate of the point to query.
+        n_binned : int
+            Number of points that have been binned. Used to guess how many
+            points to query for.
+        """
         cdef int keep_going
         cdef long idx, i, j
         # n is number of points find around node; hopefully enough so find
@@ -172,7 +195,17 @@ cdef class PointAccretor:
 
 
 cdef class EqualMassAccretor(PointAccretor):
-    """Handles point accretion so each bin has roughly equal mass."""
+    """Handles point accretion so each bin has roughly equal mass.
+    
+    Parameters
+    ----------
+    xy : ndarray
+        ``(n_points, 2)`` array giving the (x,y) coordinates of all points.
+    mass : ndarray
+        ``(n_points,)`` array giving the mass of each point.
+    target_mass : float
+        Minimum mass of each bin.
+    """
     cdef double target_mass
 
     def __init__(self, double [:, :] xy, double [:] mass, double target_mass):
@@ -194,6 +227,18 @@ cdef class EqualSNAccretor(PointAccretor):
     """Handles point accretion so each bin has roughly equal S/N.
     
     Bin centroids will be weighted by point signal.
+
+    Parameters
+    ----------
+    xy : ndarray
+        ``(n_points, 2)`` array giving the (x,y) coordinates of all points.
+    signal : ndarray
+        ``(n_points,)`` array giving the signal of each point.
+    noise : ndarray
+        ``(n_points,)`` array giving the noise (as a Gaussian standard
+        deviation) of each point.
+    target_sn : float
+        Minimum signal-to-noise ratio of each bin.
     """
     cdef double target_sn
     cdef double [:] variance

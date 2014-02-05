@@ -15,20 +15,23 @@ class CVTessellation(VoronoiTessellation):
     """Uses Lloyd's algorithm to assign data points to Voronoi bins so that
     each bin has an equal mass.
 
-    Inherits from :class:`ghostmap.voronoi.VoronoiTessellation`.
+    Inherits from :class:`tess.voronoi.VoronoiTessellation`.
 
-    :param xPoints: array of cartesian `x` locations of each data point.
-    :type xPoints: 1D `ndarray`
-    :param yPoints: array of cartesian `y` locations of each data point.
-    :type yPoints: 1D `ndarray`
-    :param densPoints: Density *or weight* of each point. For an equal-S/N
-                        generator, this should be set to (S/N)**2.
-                        For an equal number generator this can be simple
-                        an array of ones.
-    :type densPoints: 1D `ndarray`
-    :param preGenerator: an optional node generator already computed from
-                            the data.
-    :param useC: Set `False` to force use of pure-python Lloyd's algorithm
+    Parameters
+    ----------
+    xPoints : ndarray
+        Array of cartesian ``x`` locations of each data point.
+    yPoints : ndarray
+        Array of cartesian ``y`` locations of each data point.
+    densPoints : ndarray
+        Density *or weight* of each point. For an equal-S/N generator, this
+        should be set to :math:`(S/N)^2`. For an equal number generator this
+        can be simple an array of ones.
+    node_xy : ndarray
+        A ``(n_points, 2)`` array of coordinates of pre-computed generators
+        for the tessellation. You can use
+        :class:`tess.point_accretion.PointAccretion` and subclasses to build
+        an array of generators accordinate to target mass or S/N.
     """
     def __init__(self, xPoints, yPoints, densPoints, node_xy=None):
         xNode, yNode, vBinNum = self._tessellate(xPoints, yPoints, densPoints,
@@ -37,20 +40,7 @@ class CVTessellation(VoronoiTessellation):
         self.vBinNum = vBinNum
     
     def _tessellate(self, xPoints, yPoints, densPoints, node_xy=None):
-        """ Computes the centroidal voronoi tessellation itself.
-
-        :param xPoints: array of cartesian `x` locations of each data point.
-        :type xPoints: 1D `ndarray`
-        :param yPoints: array of cartesian `y` locations of each data point.
-        :type yPoints: 1D `ndarray`
-        :param densPoints: Density *or weight* of each point. For an equal-S/N
-                           generator, this should be set to (S/N)**2.
-                           For an equal number generator this can be simple
-                           an array of ones.
-        :type densPoints: 1D `ndarray`
-        :param preGenerator: an optional node generator already computed from
-                             the data.
-        """
+        """Computes the centroidal voronoi tessellation itself."""
         self.densPoints = densPoints
         
         # Obtain pre-generator node coordinates
@@ -62,16 +52,7 @@ class CVTessellation(VoronoiTessellation):
         return node_xy[:, 0], node_xy[:, 1], v_bin_numbers
 
     def _run_py_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
-        """Run Lloyd's algorithm in pure-python
-
-        :param xPoints: array of cartesian `x` locations of each data point.
-        :param yPoints: array of cartesian `y` locations of each data point.
-        :param densPoints: array of the density of each point. For an equal-S/N
-            generator, this should be set to (S/N)**2. For an equal number
-            generator this can be simple an array of ones.
-        :param xNode: array of cartesian `x` locations of each node.
-        :param yNode: array of cartesian `y` locations of each node.
-        """
+        """Run Lloyd's algorithm in pure-python."""
         nPoints = len(xPoints)
         nNodes = len(xNode)
         
@@ -134,15 +115,25 @@ class CVTessellation(VoronoiTessellation):
         return (xBar, yBar)
     
     def get_node_membership(self):
-        """Returns an array, the length of the input data arrays in
-        `tessellate()`, which have indices into the node arrays of
-        `get_nodes()`.
+        """Indices into voronoi bins for each point.
+        
+        Returns
+        -------
+        vBinNum : ndarray
+            An array, the length of the input point arrays, which have
+            indices into the node arrays of
+            :meth:`tess.CVTessellation.get_nodes()`.
         """
         return self.vBinNum
 
     def get_node_weights(self):
-        """Return the sum of the density for the nodes, same order as
-        `get_nodes()`"""
+        """Weight of each Voronoi bin.
+        
+        Returns
+        -------
+        nodeWeights : ndarray
+            Array with sum of the density for the nodes, same order as
+            :meth:`tess.CVTessellation.get_nodes()`"""
         nNodes = len(self.xNode)
         nodeWeights = np.zeros(nNodes, dtype=np.float)
         for i in xrange(nNodes):

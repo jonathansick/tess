@@ -18,9 +18,10 @@ class PixelAccretor(object):
     Users are expected to build or use a subclass of :class:`PixelAccretor`
     that need to implement the following methods
 
-    - ``candidate_quality``
-    - ``accept_pixel``
-    - ``close_bin``
+    - ``candidate_quality``, give quality value for pixel w.r.t bin.
+    - ``accept_pixel``, True if pixel should be accepted.
+    - ``pixel_added``, called when a pixel is accepted.
+    - ``close_bin``, called when a bin is completed.
 
     See :class:`tess.pixel_accretion.IsoIntensityAccrector` for an example.
     """
@@ -61,6 +62,7 @@ class PixelAccretor(object):
                 self.current_bin_indices.append(ij0)
                 self._seg_image[ij0] = bin_index
                 self._add_edges(ij0)
+                self.pixel_added()  # call to subclass
             else:
                 # Reject pixel and stop accretion
                 self.close_bin()
@@ -127,6 +129,23 @@ class PixelAccretor(object):
                     self.current_edge_heap = [v]
                     heapify(self.current_edge_heap)
 
+    def update_edge_heap(self):
+        """May be called by the subclass whenever the 'quality' values of edge
+        pixels need to be recomputed because the bin itself has changed
+        significantly.
+
+        *It is up to the subclass to call this method as necessary*. Calling
+        this method infrequently will speed up the pixel accretion, but may
+        cause suboptimal choices of pixels being accreted into bins.
+        """
+        self.current_edge_heap = []
+        for idx, v in self.current_edge_dict.iteritems():
+            new_q = self.candidate_quality(idx)
+            new_v = (new_q, idx)
+            self.current_edge_dict[idx] = new_v
+            self.current_edge_heap.append(new_v)
+        heapify(self.current_edge_heap)
+
     def _new_start_point(self):
         """Suggest a new starting pixel for next bin.
         
@@ -159,15 +178,19 @@ class IsoIntensityAccretor(PixelAccretor):
     max_pixels : int
         Maximum number of pixels that can be accreted into a single bin.
         If ``None``, then no limit is enforced.
+    max_shift_frac : flaot
+        Maximum fractional change of the bin's mean before the edge pixel
+        heap is updated.
     """
     def __init__(self, image, intensity_sigma_limit,
-            min_pixels=1, max_pixels=None):
+            min_pixels=1, max_pixels=None, max_shift_frac=0.05):
         super(IsoIntensityAccretor, self).__init__()
         self.image = image
         self.intensity_sigma_limit = intensity_sigma_limit
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels
         self._bin_mean_intensity = None
+        self._max_shift_frac = max_shift_frac
 
     def _update_bin_mean_intensity(self):
         """Compute self._bin_mean_intensity."""
@@ -188,6 +211,9 @@ class IsoIntensityAccretor(PixelAccretor):
         """
         if not self._bin_mean_intensity:
             self._update_bin_mean_intensity()
+            # Since this is the first time mean_shift_intensity is added,
+            # hold onto the original value
+            self._original_bin_mean_intensity = self._bin_mean_intensity
         return float(np.abs(self.image[idx] - self._bin_mean_intensity))
 
     def accept_pixel(self, idx):
@@ -209,6 +235,17 @@ class IsoIntensityAccretor(PixelAccretor):
             return False
         else:
             return True
+
+    def pixel_added(self):
+        """Called once a pixel has been added."""
+        self._update_bin_mean_intensity()
+        frac_diff = (self._original_bin_mean_intensity \
+            - self._bin_mean_intensity) / self._original_bin_mean_intensity
+        if np.abs(frac_diff) > self._max_shift_frac:
+            # Update the edge heap if the mean has shifted by more than 5%.
+            self.update_edge_heap()
+            # Update definition of original bin intensity
+            self._original_bin_mean_intensity = self._bin_mean_intensity
 
     def close_bin(self):
         """Called when the current bin is completed."""

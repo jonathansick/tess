@@ -18,6 +18,7 @@ class PixelAccretor(object):
     Users are expected to build or use a subclass of :class:`PixelAccretor`
     that need to implement the following methods
 
+    - ``bin_started`` when a new bin is seeded.
     - ``candidate_quality``, give quality value for pixel w.r.t bin.
     - ``accept_pixel``, True if pixel should be accepted.
     - ``pixel_added``, called when a pixel is accepted.
@@ -53,6 +54,7 @@ class PixelAccretor(object):
         self.current_edge_dict = {}  # to keep index into heap
         self._seg_image[ij0] = bin_index
         self._add_edges(ij0)
+        self.bin_started()  # call to subclass
         while self.current_edge_heap:  # while there are edges
             # Select a new pixel to add
             quality, ij0 = heappop(self.current_edge_heap)
@@ -65,7 +67,7 @@ class PixelAccretor(object):
                 self.pixel_added()  # call to subclass
             else:
                 # Reject pixel and stop accretion
-                self.close_bin()
+                self.close_bin()  # call to subclass
                 break
         # Add remaining edges to the global edge list
         leftovers = set(self.current_edge_dict.keys())
@@ -81,7 +83,7 @@ class PixelAccretor(object):
         idx = (ij0[0] + 1, ij0[1])
         if idx[0] < self._nrows and self._seg_image[idx] == -1:
             if not idx in self.current_edge_dict:
-                quality = self.candidate_quality(idx)
+                quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
                 if self.current_edge_heap:
@@ -94,7 +96,7 @@ class PixelAccretor(object):
         idx = (ij0[0] - 1, ij0[1])
         if idx[0] >= 0 and self._seg_image[idx] == -1:
             if not idx in self.current_edge_dict:
-                quality = self.candidate_quality(idx)
+                quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
                 if self.current_edge_heap:
@@ -107,7 +109,7 @@ class PixelAccretor(object):
         idx = (ij0[0], ij0[1] + 1)
         if idx[1] < self._ncols and self._seg_image[idx] == -1:
             if not idx in self.current_edge_dict:
-                quality = self.candidate_quality(idx)
+                quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
                 if self.current_edge_heap:
@@ -120,7 +122,7 @@ class PixelAccretor(object):
         idx = (ij0[0], ij0[1] - 1)
         if idx[1] >= 0 and self._seg_image[idx] == -1:
             if not idx in self.current_edge_dict:
-                quality = self.candidate_quality(idx)
+                quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
                 if self.current_edge_heap:
@@ -198,6 +200,14 @@ class IsoIntensityAccretor(PixelAccretor):
                 / float(len(self.current_bin_indices))
         self._bin_mean_intensity = mu
 
+    def bin_started(self):
+        """Called by :class`PixelAccretor` baseclass when a new bin has been
+        started (and a seed pixel has been added)."""
+        self._update_bin_mean_intensity()
+        # Since this is the first time mean_shift_intensity is added,
+        # hold onto the original value
+        self._original_bin_mean_intensity = self._bin_mean_intensity
+
     def candidate_quality(self, idx):
         """Gives the scalar quality of adding this pixel with respect to the
         current bin. Pixels with the smallest 'quality' value are accreted.
@@ -209,11 +219,6 @@ class IsoIntensityAccretor(PixelAccretor):
         idx : tuple
             The pixel index to be tested.
         """
-        if not self._bin_mean_intensity:
-            self._update_bin_mean_intensity()
-            # Since this is the first time mean_shift_intensity is added,
-            # hold onto the original value
-            self._original_bin_mean_intensity = self._bin_mean_intensity
         return float(np.abs(self.image[idx] - self._bin_mean_intensity))
 
     def accept_pixel(self, idx):

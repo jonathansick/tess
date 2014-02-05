@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Representation of Voronoi Tessellations in ghostmap.
-
-2012-10-25 - Created by Jonathan Sick
+Representation of Voronoi Tessellations.
 """
 
 import os
@@ -13,7 +11,15 @@ from scipy.spatial import KDTree
 
 
 class VoronoiTessellation(object):
-    """A Voronoi Tessellation."""
+    """A Voronoi Tessellation, defined by a set of nodes on a 2D plane.
+    
+    Parameters
+    ----------
+    x : ndarray, (n_nodes, 1)
+        Array of node x-coordinates.
+    y : ndarray, (n_nodes, 1)
+        Array of node y-coordinates.
+    """
     def __init__(self, x, y):
         super(VoronoiTessellation, self).__init__()
         self.xNode = x  #: Array of node x-coordinates
@@ -32,9 +38,13 @@ class VoronoiTessellation(object):
 
         - :meth:`make_segmap` and :meth:`save_segmap`
         - :meth:`compute_cell_areas`
-
-        :param xlim: tuples of (min, max) pixel ranges.
-        :param ylim: tuples of (min, max) pixel ranges.
+        
+        Parameters
+        ----------
+        xlim : tuple
+            Tuple of (min, max) pixel range along x-axis.
+        ylim : tuple
+            Tuple of of (min, max) pixel range along y-axis.
         """
         assert len(xlim) == 2, "xlim must be (min, max) sequence"
         assert len(ylim) == 2, "ylim must be (min, max) sequence"
@@ -47,8 +57,11 @@ class VoronoiTessellation(object):
         any rendered fields to FITS.
         
         .. note:: The header is available as the :attr:`header` attribute.
-
-        :param header: a PyFITS image header, defines area of rendered Voronoi
+        
+        Parameters
+        ----------
+        header : :class:`astropy.io.fits.Header`
+            An astropy FITS image header; defines area of rendered Voronoi
             images (e.g. segmentaion maps or fields).
         """
         # Assume origin at 1, FITS standard
@@ -64,7 +77,10 @@ class VoronoiTessellation(object):
         The result is stored as the :attr:`segmap` attribute and returned to
         the caller.
         
-        :returns: The segmentation map array, :attr:`segmap`.
+        Returns
+        -------
+        segmap : ndarray
+            The segmentation map array, :attr:`segmap`.
         """
         self.segmap = self.render_voronoi_field(
             np.arange(0, self.yNode.shape[0]))
@@ -78,9 +94,16 @@ class VoronoiTessellation(object):
         .. note:: Must set the pixel grid context with
            either :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!
 
-        :param nodeValues: 1D array of values for Voronoi nodes (must be same
-            length as :attr:`xNode` and :attr:`xNode`.
-        :returns: 2D array (image) of Voronoi field.
+        Parameters
+        ----------
+        nodeValues : ndarray
+            1D array of values for Voronoi nodes (must be same length as
+            :attr:`xNode` and :attr:`xNode`.
+
+        Returns
+        -------
+        field : ndarray
+            2D array (image) of Voronoi field.
         """
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
@@ -103,7 +126,10 @@ class VoronoiTessellation(object):
         """Convenience wrapper to :meth:`make_segmap` that saves the
         segmentation map to a FITS file.
 
-        :param fitsPath: full filename destination of FITS file
+        Parameters
+        ----------
+        fitsPath : str
+            Full filename destination of FITS file.
         """
         import astropy.io.fits
         fitsDir = os.path.dirname(fitsPath)
@@ -129,14 +155,19 @@ class VoronoiTessellation(object):
            but no good python packages exist for defining Voronoi cell
            polygons.
 
-        :param flagmap: Any pixels in the flagmap with
-            values greater than zero will be omitted from the
-            area count. Thus the cell areas will report *useable*
-            pixel areas, rather than purely geometric areas. This is useful
-            to avoid bias in density maps due to 'bad' pixels.
-        :type flagmap: 2D `ndarray`
-        :returns: ndarray of cell areas (square pixels). This array is also
-           stored as :attr:`cellAreas`.
+        Parameters
+        ----------
+        flagmap : ndarray
+            Any pixels in the flagmap with values greater than zero will be
+            omitted from the area count. Thus the cell areas will report
+            *useable* pixel areas, rather than purely geometric areas. This is
+            useful to avoid bias in density maps due to 'bad' pixels.
+
+        Returns
+        -------
+        cellAreas : ndarray
+            Array of cell areas (square pixels). This array is also
+            stored as :attr:`cellAreas`.
         """
         assert self.segmap is not None, "Compute a segmentation map first"
         
@@ -151,7 +182,15 @@ class VoronoiTessellation(object):
         return self.cellAreas
 
     def get_nodes(self):
-        """Returns the x and y positions of the Voronoi nodes."""
+        """Returns the x and y positions of the Voronoi nodes.
+        
+        Returns
+        -------
+        xNode : ndarray
+            X-coordinates of Voronoi nodes.
+        yNode : ndarray
+            Y-coordinates of Voronoi nodes
+        """
         return self.xNode, self.yNode
 
     def partition_points(self, x, y):
@@ -161,9 +200,17 @@ class VoronoiTessellation(object):
         This method uses :class:`scipy.spatial.cKDTree` to efficiently handle
         Voronoi assignment.
 
-        :param x: array of point `x` coordinates
-        :param y: array of point `y` coordinates
-        :returns: ndarray of indices of Voronoi nodes
+        Parameters
+        ----------
+        x : ndarray
+            Array of point `x` coordinates
+        y : ndarray
+            Array of point `y` coordinates
+
+        Returns
+        -------
+        indices : ndarray
+            Array of indices of Voronoi nodes
         """
         nodeData = np.vstack((self.xNode, self.yNode)).T
         pointData = np.vstack((x, y)).T
@@ -174,6 +221,21 @@ class VoronoiTessellation(object):
     def sum_cell_point_mass(self, x, y, mass=None):
         """Given a set of points with masses, computes the mass within
         each Voronoi cell.
+
+        Parameters
+        ----------
+        x : ndarray
+            X-coordinates of points to assign to Voronoi cells.
+        y : ndarray
+            Y-coordinates of points to assign to Voronoi cells.
+        mass : ndarray
+            Mass of each point. If `None`, then each point is assumed to have
+            unit mass.
+
+        Returns
+        -------
+        mass : ndarray
+            Sum of masses of points within each Voronoi cell.
         """
         if mass is None:
             mass = np.ones(len(x))
@@ -183,25 +245,41 @@ class VoronoiTessellation(object):
 
     def cell_point_density(self, x, y, mass=None, flagmap=None):
         """Compute density of points in each Voronoi cell.
-        Uses :meth:`sum_cell_point_mass`.
 
         .. note:: This method calls :meth:`compute_cell_areas` if the cell
            areas have not been compute yet. The `flagmap` parameter can be
            passed to that method. If :attr:`cellAreas` is not `None`,
            then new cell areas will *not* be computed.
         
-        :param x: 1D array of point x-coordinates
-        :param y: 1D array of point y-coordinates
-        :param mass: (optional) 1D array of point masses (or *weights*).
-        :param flagmap: (optional) flagmap to be passed to
-                        :meth:`compute_cell_areas`.
+        Parameters
+        ----------
+        x : ndarray
+            1D array of point x-coordinates
+        y : ndarray
+            1D array of point y-coordinates
+        mass : ndarray
+            Optional 1D array of point masses (or *weights*). If `None`, then
+            each point is assumed to have unit mass.
+        flagmap : ndarray
+            Optional flagmap to be passed to :meth:`compute_cell_areas`.
+
+        Returns
+        -------
+        density : ndarray
+            Density of each Voronoi cell, in units of mass / square pixel.
         """
         if self.cellAreas is None:
             self.compute_cell_areas(flagmap=flagmap)
         return self.sum_cell_point_mass(x, y, mass=mass) / self.cellAreas
 
     def plot_nodes(self, plotPath):
-        """Plots the points in each bin as a different colour"""
+        """Plots the points in each bin as a different colour
+        
+        Parameters
+        ----------
+        plotPath : str
+            Path where the plot will be saved.
+        """
         from matplotlib.backends.backend_pdf \
                 import FigureCanvasPdf as FigureCanvas
         from matplotlib.figure import Figure

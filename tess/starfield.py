@@ -3,10 +3,6 @@
 """
 For deriving the projected stellar density a resolved stellar population,
 given colour information and a spatial distribution.
-
-History
--------
-2011-10-18 - Created by Jonathan Sick
 """
 
 import numpy as np
@@ -48,8 +44,8 @@ class StarField(object):
         """Load a resolved stellar data set by passing position and
         magnitude information as equal-length 1D numpy vectors.
         
-        Arguments
-        ---------
+        Parameters
+        ----------
         x, y : 1D ndarray
            The x and y locations of stars in the field. These should be
            in units of pixels if the WCS is used.
@@ -99,10 +95,10 @@ class StarField(object):
         Stars are selected using a point-in-polygon code. Selected stars
         are given a value of True in the `selection` member variable.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         poly : list
-            Each list item is a tuple (mag1_vert,mag2_vert), giving a vertex
+            Each list item is a tuple (mag1_vert, mag2_vert), giving a vertex
             in the colour selection polygon. The polygon closes itself.
         """
         self.selectionPoly = poly
@@ -146,8 +142,8 @@ class StarField(object):
         4. Estimate density with the Delaunay Tessellation Field Estimator
         5. Render the density field on the Delaunay triangles (interpolation)
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         targetMass : scalar
             The number of stars (or equivalent, with completeness correction)
             targeted for each Voronoi bin

@@ -14,7 +14,7 @@ class PixelAccretor(object):
     Unlike the point accretion algorithms in :mod:`tess.point_accretion`,
     these pixel accretion tools uses the grid geometry of images and only
     accrete pixels are connected neighbours.
-    
+
     Users are expected to build or use a subclass of :class:`PixelAccretor`
     that need to implement the following methods
 
@@ -31,7 +31,7 @@ class PixelAccretor(object):
 
     def accrete(self, ij0):
         """Run the pixel accretion algorithm, starting with pixel ij0.
-        
+
         Parameters
         ----------
         idx : tuple
@@ -82,7 +82,7 @@ class PixelAccretor(object):
         # Top neighbour
         idx = (ij0[0] + 1, ij0[1])
         if idx[0] < self._nrows and self._seg_image[idx] == -1:
-            if not idx in self.current_edge_dict:
+            if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
@@ -95,7 +95,7 @@ class PixelAccretor(object):
         # Bottom neighbour
         idx = (ij0[0] - 1, ij0[1])
         if idx[0] >= 0 and self._seg_image[idx] == -1:
-            if not idx in self.current_edge_dict:
+            if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
@@ -108,7 +108,7 @@ class PixelAccretor(object):
         # Right neighbour
         idx = (ij0[0], ij0[1] + 1)
         if idx[1] < self._ncols and self._seg_image[idx] == -1:
-            if not idx in self.current_edge_dict:
+            if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
@@ -121,7 +121,7 @@ class PixelAccretor(object):
         # Left neighbour
         idx = (ij0[0], ij0[1] - 1)
         if idx[1] >= 0 and self._seg_image[idx] == -1:
-            if not idx in self.current_edge_dict:
+            if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
                 v = (quality, idx)
                 self.current_edge_dict[idx] = v
@@ -150,7 +150,7 @@ class PixelAccretor(object):
 
     def _new_start_point(self):
         """Suggest a new starting pixel for next bin.
-        
+
         This pixel comes from the pool of edge pixels.
         Returns ``None`` if no edge pixels are available.
         """
@@ -167,7 +167,7 @@ class IsoIntensityAccretor(PixelAccretor):
     Each region in the image will have a standard deviation of pixel
     intensities within a user-defined limit. This can be thought of as
     a way of building non-parameteric isophotal regions.
-    
+
     Parameters
     ----------
     image : ndarray
@@ -185,7 +185,7 @@ class IsoIntensityAccretor(PixelAccretor):
         heap is updated.
     """
     def __init__(self, image, intensity_sigma_limit,
-            min_pixels=1, max_pixels=None, max_shift_frac=0.05):
+                 min_pixels=1, max_pixels=None, max_shift_frac=0.05):
         super(IsoIntensityAccretor, self).__init__()
         self.image = image
         self.intensity_sigma_limit = intensity_sigma_limit
@@ -197,7 +197,7 @@ class IsoIntensityAccretor(PixelAccretor):
     def _update_bin_mean_intensity(self):
         """Compute self._bin_mean_intensity."""
         mu = sum([self.image[idx] for idx in self.current_bin_indices]) \
-                / float(len(self.current_bin_indices))
+            / float(len(self.current_bin_indices))
         self._bin_mean_intensity = mu
 
     def bin_started(self):
@@ -213,7 +213,7 @@ class IsoIntensityAccretor(PixelAccretor):
         current bin. Pixels with the smallest 'quality' value are accreted.
         Here quality is defined as absolute difference of the pixel's intensity
         and the mean intensity of the existing bin.
-        
+
         Parameters
         ----------
         idx : tuple
@@ -223,7 +223,7 @@ class IsoIntensityAccretor(PixelAccretor):
 
     def accept_pixel(self, idx):
         """Test a pixel, return ``True`` if it should be added to the bin.
-        
+
         Parameters
         ----------
         idx : tuple
@@ -235,7 +235,7 @@ class IsoIntensityAccretor(PixelAccretor):
         if self.max_pixels and npix > self.max_pixels:
             return False
         intensities = np.array([self.image[k] for k in
-            self.current_bin_indices + [idx]])
+                                self.current_bin_indices + [idx]])
         if intensities.std() > self.intensity_sigma_limit:
             return False
         else:
@@ -244,8 +244,9 @@ class IsoIntensityAccretor(PixelAccretor):
     def pixel_added(self):
         """Called once a pixel has been added."""
         self._update_bin_mean_intensity()
-        frac_diff = (self._original_bin_mean_intensity \
-            - self._bin_mean_intensity) / self._original_bin_mean_intensity
+        frac_diff = (self._original_bin_mean_intensity
+                     - self._bin_mean_intensity) \
+            / self._original_bin_mean_intensity
         if np.abs(frac_diff) > self._max_shift_frac:
             # Update the edge heap if the mean has shifted by more than 5%.
             self.update_edge_heap()

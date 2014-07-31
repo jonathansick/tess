@@ -6,6 +6,7 @@ Tests for the pixel_accretion module
 import numpy as np
 
 from tess.pixel_accretion import IsoIntensityAccretor
+from tess.pixel_accretion import EqualSNAccretor
 
 
 def test_isointensity_blockimage():
@@ -26,5 +27,12 @@ def test_isointensity_blockimage():
     assert accretor._seg_image.max() == 3
 
 
-if __name__ == '__main__':
-    test_isointensity_blockimage()
+def test_iso_sn_image():
+    """Make an image where each pixel has S/N=5."""
+    img = 5. * np.ones((64, 64), dtype=float)
+    noise = np.ones((64, 64), dtype=float)
+    accretor = EqualSNAccretor(img, noise, 20.)
+    accretor.accrete((0, 0))
+    print accretor._seg_image
+    # Should be about 1024 groups.
+    assert accretor._seg_image.max() <= 1050.

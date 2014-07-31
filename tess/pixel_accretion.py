@@ -255,3 +255,106 @@ class IsoIntensityAccretor(PixelAccretor):
     def close_bin(self):
         """Called when the current bin is completed."""
         self._bin_mean_intensity = None
+
+
+class EqualSNAccretor(PixelAccretor):
+    """Bin pixels to make iso-signal-to-noise regions.
+
+    Each region will have roughly equal S/N ratio. Thus high S/N regions
+    will have high resolution, while low S/N regions will tend to be larger.
+    This creates optimally sized spatial bins for homogenous quality
+    samples.
+
+    Parameters
+    ----------
+    image : ndarray
+        The image to be segmented.
+    noise_image : ndarray
+        Noise image, in uniques of standard deviations. The noise image
+        must match the shape of ``image``.
+    target_sn : float
+        Target S/N ratio for each bin.
+    min_pixels : int
+        Minimum number of pixels that need to be in a single bin.
+    max_pixels : int
+        Maximum number of pixels that can be accreted into a single bin.
+        If ``None``, then no limit is enforced.
+    """
+    def __init__(self, image, noise_image, target_sn,
+                 min_pixels=1, max_pixels=None):
+        super(EqualSNAccretor, self).__init__()
+        self.image = image
+        self.noise = noise_image
+        assert self.image.shape[0] == self.noise.shape[0]
+        assert self.image.shape[1] == self.noise.shape[1]
+        self.target_sn = target_sn
+        self.min_pixels = min_pixels
+        self.max_pixels = max_pixels
+        self._bin_sn = None
+        self._bin_centroid = None
+
+    def _update_bin(self):
+        """Compute the current S/N of the bin."""
+        # print "_update_bin"
+        signal = sum([self.image[idx] for idx in self.current_bin_indices])
+        var = sum([self.noise[idx] ** 2.
+                   for idx in self.current_bin_indices])
+        self._bin_sn = signal / np.sqrt(var)
+        x0 = np.mean([idx[1] for idx in self.current_bin_indices])
+        y0 = np.mean([idx[0] for idx in self.current_bin_indices])
+        self._bin_centroid = np.array([x0, y0])
+
+    def bin_started(self):
+        """Called by :class`PixelAccretor` baseclass when a new bin has been
+        started (and a seed pixel has been added)."""
+        # print "bin_started"
+        self._update_bin()
+
+    def candidate_quality(self, idx):
+        """Gives the scalar quality of adding this pixel with respect to the
+        current bin. Pixels with the smallest 'quality' value are accreted.
+        Here quality is defined as distance of candidate pixel from bin
+        centroid.
+
+        Parameters
+        ----------
+        idx : tuple
+            The pixel index to be tested.
+        """
+        # print "candidate_quality"
+        if self._bin_centroid is None:
+            return 0.
+        else:
+            xy = np.array([idx[1], idx[0]])
+            # print self._bin_centroid, xy
+            return float(np.sqrt(np.sum((xy - self._bin_centroid) ** 2.)))
+
+    def accept_pixel(self, idx):
+        """Test a pixel, return ``True`` if it should be added to the bin.
+
+        Parameters
+        ----------
+        idx : tuple
+            The pixel index to be tested..
+        """
+        npix = len(self.current_bin_indices)
+        print "accept_test", npix, self._bin_sn, self.target_sn
+        if npix < self.min_pixels:
+            return True
+        if self._bin_sn > self.target_sn:
+            return False
+        if self.max_pixels and npix > self.max_pixels:
+            return False
+        else:
+            return True
+
+    def pixel_added(self):
+        """Called once a pixel has been added."""
+        # print "pixel_added"
+        self._update_bin()
+        self.update_edge_heap()
+
+    def close_bin(self):
+        """Called when the current bin is completed."""
+        self._bin_centroid = None
+        self._bin_sn = None

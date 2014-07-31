@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The tess.point_accretion Module &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="API Reference" href="index.html" />
+    <link rel="next" title="The tess.pixel_accretion Module" href="pixel_accretion.html" />
+    <link rel="prev" title="The tess.voronoi Module" href="voronoi.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="pixel_accretion.html" title="The tess.pixel_accretion Module">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="voronoi.html" title="The tess.voronoi Module">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
+      <li><a href="index.html" accesskey="U">API Reference</a> &raquo;</li>
+      
+      <li>The <tt class="docutils literal"><span class="pre">tess.point_accretion</span></tt> Module</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tess.point_accretion">
+<span id="the-tess-point-accretion-module"></span><h1>The <a class="reference internal" href="#module-tess.point_accretion" title="tess.point_accretion"><tt class="xref py py-obj docutils literal"><span class="pre">tess.point_accretion</span></tt></a> Module<a class="headerlink" href="#module-tess.point_accretion" title="Permalink to this headline">¶</a></h1>
+<p>Cython point accretion module &#8211; for binning points until a threshold mass or
+S/N is met.</p>
+<dl class="class">
+<dt id="tess.point_accretion.EqualMassAccretor">
+<em class="property">class </em><tt class="descclassname">tess.point_accretion.</tt><tt class="descname">EqualMassAccretor</tt><a class="headerlink" href="#tess.point_accretion.EqualMassAccretor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles point accretion so each bin has roughly equal mass.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xy</strong> : ndarray</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">2)</span></tt> array giving the (x,y) coordinates of all points.</p>
+</div></blockquote>
+<p><strong>mass</strong> : ndarray</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">(n_points,)</span></tt> array giving the mass of each point.</p>
+</div></blockquote>
+<p><strong>target_mass</strong> : float</p>
+<blockquote class="last">
+<div><p>Minimum mass of each bin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="tess.point_accretion.EqualSNAccretor">
+<em class="property">class </em><tt class="descclassname">tess.point_accretion.</tt><tt class="descname">EqualSNAccretor</tt><a class="headerlink" href="#tess.point_accretion.EqualSNAccretor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles point accretion so each bin has roughly equal S/N.</p>
+<p>Bin centroids will be weighted by point signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xy</strong> : ndarray</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">2)</span></tt> array giving the (x,y) coordinates of all points.</p>
+</div></blockquote>
+<p><strong>signal</strong> : ndarray</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">(n_points,)</span></tt> array giving the signal of each point.</p>
+</div></blockquote>
+<p><strong>noise</strong> : ndarray</p>
+<blockquote>
+<div><p><tt class="docutils literal"><span class="pre">(n_points,)</span></tt> array giving the noise (as a Gaussian standard
+deviation) of each point.</p>
+</div></blockquote>
+<p><strong>target_sn</strong> : float</p>
+<blockquote class="last">
+<div><p>Minimum signal-to-noise ratio of each bin.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="tess.point_accretion.PointAccretor">
+<em class="property">class </em><tt class="descclassname">tess.point_accretion.</tt><tt class="descname">PointAccretor</tt><a class="headerlink" href="#tess.point_accretion.PointAccretor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Baseclass for binning points by accreting points closest to bin
+centroids.</p>
+<dl class="method">
+<dt id="tess.point_accretion.PointAccretor.accrete">
+<tt class="descname">accrete</tt><big>(</big><big>)</big><a class="headerlink" href="#tess.point_accretion.PointAccretor.accrete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the point accretion algorithm to build bins of points of a
+certain mass or quality.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.point_accretion.PointAccretor.cleanup">
+<tt class="descname">cleanup</tt><big>(</big><big>)</big><a class="headerlink" href="#tess.point_accretion.PointAccretor.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean up bins that failed to meet quality requirements by
+re-allocating their points to other bins.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.point_accretion.PointAccretor.nodes">
+<tt class="descname">nodes</tt><big>(</big><big>)</big><a class="headerlink" href="#tess.point_accretion.PointAccretor.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the x,y coordinates of the node centroids.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">tess.point_accretion</span></tt> Module</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../../_sources/tess/api/point_accretion.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The tess.voronoi Module &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="API Reference" href="index.html" />
+    <link rel="next" title="The tess.point_accretion Module" href="point_accretion.html" />
+    <link rel="prev" title="The tess.delaunay Module" href="delaunay.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="point_accretion.html" title="The tess.point_accretion Module">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="delaunay.html" title="The tess.delaunay Module">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
+      <li><a href="index.html" accesskey="U">API Reference</a> &raquo;</li>
+      
+      <li>The <tt class="docutils literal"><span class="pre">tess.voronoi</span></tt> Module</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tess.voronoi">
+<span id="the-tess-voronoi-module"></span><h1>The <a class="reference internal" href="#module-tess.voronoi" title="tess.voronoi"><tt class="xref py py-obj docutils literal"><span class="pre">tess.voronoi</span></tt></a> Module<a class="headerlink" href="#module-tess.voronoi" title="Permalink to this headline">¶</a></h1>
+<p>Representation of Voronoi Tessellations.</p>
+<dl class="class">
+<dt id="tess.voronoi.VoronoiTessellation">
+<em class="property">class </em><tt class="descclassname">tess.voronoi.</tt><tt class="descname">VoronoiTessellation</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Voronoi Tessellation, defined by a set of nodes on a 2D plane.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray, (n_nodes, 1)</p>
+<blockquote>
+<div><p>Array of node x-coordinates.</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray, (n_nodes, 1)</p>
+<blockquote class="last">
+<div><p>Array of node y-coordinates.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.cellAreas">
+<tt class="descname">cellAreas</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.cellAreas" title="Permalink to this definition">¶</a></dt>
+<dd><p>1D array of Voronoi cell areas</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.cell_point_density">
+<tt class="descname">cell_point_density</tt><big>(</big><em>x</em>, <em>y</em>, <em>mass=None</em>, <em>flagmap=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.cell_point_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.cell_point_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute density of points in each Voronoi cell.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method calls <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="tess.voronoi.VoronoiTessellation.compute_cell_areas"><tt class="xref py py-meth docutils literal"><span class="pre">compute_cell_areas()</span></tt></a> if the cell
+areas have not been compute yet. The <tt class="xref py py-obj docutils literal"><span class="pre">flagmap</span></tt> parameter can be
+passed to that method. If <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.cellAreas" title="tess.voronoi.VoronoiTessellation.cellAreas"><tt class="xref py py-attr docutils literal"><span class="pre">cellAreas</span></tt></a> is not <a class="reference external" href="http://docs.python.org/library/constants.html#None" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt></a>,
+then new cell areas will <em>not</em> be computed.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>1D array of point x-coordinates</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray</p>
+<blockquote>
+<div><p>1D array of point y-coordinates</p>
+</div></blockquote>
+<p><strong>mass</strong> : ndarray</p>
+<blockquote>
+<div><p>Optional 1D array of point masses (or <em>weights</em>). If <a class="reference external" href="http://docs.python.org/library/constants.html#None" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt></a>, then
+each point is assumed to have unit mass.</p>
+</div></blockquote>
+<p><strong>flagmap</strong> : ndarray</p>
+<blockquote>
+<div><p>Optional flagmap to be passed to <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="tess.voronoi.VoronoiTessellation.compute_cell_areas"><tt class="xref py py-meth docutils literal"><span class="pre">compute_cell_areas()</span></tt></a>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>density</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Density of each Voronoi cell, in units of mass / square pixel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.compute_cell_areas">
+<tt class="descname">compute_cell_areas</tt><big>(</big><em>flagmap=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.compute_cell_areas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the areas of Voronoi cells; result is stored in the
+<tt class="xref py py-obj docutils literal"><span class="pre">self.cellAreas</span></tt> attribute.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method requires that the segmentation map is computed
+(see <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a>), and is potentially expensive (I&#8217;m working
+on a faster implementation). Uses <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.bincount.html#numpy.bincount" title="(in NumPy v1.8)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.bincount()</span></tt></a> to count
+number of pixels in the segmentation map with a given Voronoi
+cell value. I&#8217;d prefer to calculate these from simple geometry,
+but no good python packages exist for defining Voronoi cell
+polygons.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>flagmap</strong> : ndarray</p>
+<blockquote>
+<div><p>Any pixels in the flagmap with values greater than zero will be
+omitted from the area count. Thus the cell areas will report
+<em>useable</em> pixel areas, rather than purely geometric areas. This is
+useful to avoid bias in density maps due to &#8216;bad&#8217; pixels.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>cellAreas</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Array of cell areas (square pixels). This array is also
+stored as <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.cellAreas" title="tess.voronoi.VoronoiTessellation.cellAreas"><tt class="xref py py-attr docutils literal"><span class="pre">cellAreas</span></tt></a>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.get_nodes">
+<tt class="descname">get_nodes</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.get_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.get_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the x and y positions of the Voronoi nodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>xNode</strong> : ndarray</p>
+<blockquote>
+<div><p>X-coordinates of Voronoi nodes.</p>
+</div></blockquote>
+<p><strong>yNode</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Y-coordinates of Voronoi nodes</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.header">
+<tt class="descname">header</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.header" title="Permalink to this definition">¶</a></dt>
+<dd><p>a PyFITS header representing pixel grid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.make_segmap">
+<tt class="descname">make_segmap</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.make_segmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a pixel segmentation map that paints the Voronoi bin number
+on Voronoi pixels.</p>
+<p>The result is stored as the <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.segmap" title="tess.voronoi.VoronoiTessellation.segmap"><tt class="xref py py-attr docutils literal"><span class="pre">segmap</span></tt></a> attribute and returned to
+the caller.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>segmap</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>The segmentation map array, <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.segmap" title="tess.voronoi.VoronoiTessellation.segmap"><tt class="xref py py-attr docutils literal"><span class="pre">segmap</span></tt></a>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.partition_points">
+<tt class="descname">partition_points</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.partition_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.partition_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partition an arbitrary set of points, defined by <tt class="xref py py-obj docutils literal"><span class="pre">x</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">y</span></tt>
+coordinates, onto the Voronoi tessellation.</p>
+<p>This method uses <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.cKDTree.html#scipy.spatial.cKDTree" title="(in SciPy v0.14.0)"><tt class="xref py py-class docutils literal"><span class="pre">scipy.spatial.cKDTree</span></tt></a> to efficiently handle
+Voronoi assignment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of point <tt class="xref py py-obj docutils literal"><span class="pre">x</span></tt> coordinates</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of point <tt class="xref py py-obj docutils literal"><span class="pre">y</span></tt> coordinates</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>indices</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Array of indices of Voronoi nodes</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.plot_nodes">
+<tt class="descname">plot_nodes</tt><big>(</big><em>plotPath</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.plot_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.plot_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the points in each bin as a different colour</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>plotPath</strong> : str</p>
+<blockquote class="last">
+<div><p>Path where the plot will be saved.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.render_voronoi_field">
+<tt class="descname">render_voronoi_field</tt><big>(</big><em>nodeValues</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.render_voronoi_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.render_voronoi_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders the Voronoi field onto the pixel context with the given
+<tt class="xref py py-obj docutils literal"><span class="pre">nodeValues</span></tt> for each Voronoi cell.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Must set the pixel grid context with
+either <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="tess.voronoi.VoronoiTessellation.set_pixel_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_pixel_grid()</span></tt></a> or <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_fits_grid" title="tess.voronoi.VoronoiTessellation.set_fits_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_fits_grid()</span></tt></a> first!</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nodeValues</strong> : ndarray</p>
+<blockquote>
+<div><p>1D array of values for Voronoi nodes (must be same length as
+<a class="reference internal" href="#tess.voronoi.VoronoiTessellation.xNode" title="tess.voronoi.VoronoiTessellation.xNode"><tt class="xref py py-attr docutils literal"><span class="pre">xNode</span></tt></a> and <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.xNode" title="tess.voronoi.VoronoiTessellation.xNode"><tt class="xref py py-attr docutils literal"><span class="pre">xNode</span></tt></a>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>2D array (image) of Voronoi field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.save_segmap">
+<tt class="descname">save_segmap</tt><big>(</big><em>fitsPath</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.save_segmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.save_segmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience wrapper to <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a> that saves the
+segmentation map to a FITS file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fitsPath</strong> : str</p>
+<blockquote class="last">
+<div><p>Full filename destination of FITS file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.segmap">
+<tt class="descname">segmap</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.segmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D <tt class="xref py py-obj docutils literal"><span class="pre">ndarray</span></tt> of <tt class="xref py py-obj docutils literal"><span class="pre">vBinNum</span></tt> for each pixel</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.set_fits_grid">
+<tt class="descname">set_fits_grid</tt><big>(</big><em>header</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.set_fits_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.set_fits_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience wrapper to <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="tess.voronoi.VoronoiTessellation.set_pixel_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_pixel_grid()</span></tt></a> if a FITS header is
+available. As a bonus, the FITS header will be used when saving
+any rendered fields to FITS.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The header is available as the <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.header" title="tess.voronoi.VoronoiTessellation.header"><tt class="xref py py-attr docutils literal"><span class="pre">header</span></tt></a> attribute.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>header</strong> : <tt class="xref py py-class docutils literal"><span class="pre">astropy.io.fits.Header</span></tt></p>
+<blockquote class="last">
+<div><p>An astropy FITS image header; defines area of rendered Voronoi
+images (e.g. segmentaion maps or fields).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.set_pixel_grid">
+<tt class="descname">set_pixel_grid</tt><big>(</big><em>xlim</em>, <em>ylim</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.set_pixel_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a pixel grid bounding box for the tessellation. This is
+used when rendering Voronoi fields or computing cell areas.</p>
+<p>Setting the pixel grid is a prerequistie for running the methods:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a> and <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.save_segmap" title="tess.voronoi.VoronoiTessellation.save_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">save_segmap()</span></tt></a></li>
+<li><a class="reference internal" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="tess.voronoi.VoronoiTessellation.compute_cell_areas"><tt class="xref py py-meth docutils literal"><span class="pre">compute_cell_areas()</span></tt></a></li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xlim</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (min, max) pixel range along x-axis.</p>
+</div></blockquote>
+<p><strong>ylim</strong> : tuple</p>
+<blockquote class="last">
+<div><p>Tuple of of (min, max) pixel range along y-axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.voronoi.VoronoiTessellation.sum_cell_point_mass">
+<tt class="descname">sum_cell_point_mass</tt><big>(</big><em>x</em>, <em>y</em>, <em>mass=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.sum_cell_point_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.sum_cell_point_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a set of points with masses, computes the mass within
+each Voronoi cell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>X-coordinates of points to assign to Voronoi cells.</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray</p>
+<blockquote>
+<div><p>Y-coordinates of points to assign to Voronoi cells.</p>
+</div></blockquote>
+<p><strong>mass</strong> : ndarray</p>
+<blockquote>
+<div><p>Mass of each point. If <a class="reference external" href="http://docs.python.org/library/constants.html#None" title="(in Python v2.7)"><tt class="xref py py-obj docutils literal"><span class="pre">None</span></tt></a>, then each point is assumed to have
+unit mass.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mass</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Sum of masses of points within each Voronoi cell.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.xNode">
+<tt class="descname">xNode</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.xNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of node x-coordinates</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.xlim">
+<tt class="descname">xlim</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.xlim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Length-2 array of min, max coords of x pixel grid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.yNode">
+<tt class="descname">yNode</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.yNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of node y-coordinates</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.voronoi.VoronoiTessellation.ylim">
+<tt class="descname">ylim</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.ylim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Length-2 array of min, max coords of y pixel grid</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">tess.voronoi</span></tt> Module</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../../_sources/tess/api/voronoi.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tess.cvtessellation &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tess.cvtessellation</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Centroidal Voronoi Tessellations (using Lloyd&#39;s algorithm).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">voronoi</span> <span class="kn">import</span> <span class="n">VoronoiTessellation</span>
+
+<span class="kn">from</span> <span class="nn">lloyd</span> <span class="kn">import</span> <span class="n">lloyd</span>
+
+
+<div class="viewcode-block" id="CVTessellation"><a class="viewcode-back" href="../../tess/api/cvtessellation.html#tess.cvtessellation.CVTessellation">[docs]</a><span class="k">class</span> <span class="nc">CVTessellation</span><span class="p">(</span><span class="n">VoronoiTessellation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uses Lloyd&#39;s algorithm to assign data points to Voronoi bins so that</span>
+<span class="sd">    each bin has an equal mass.</span>
+
+<span class="sd">    Inherits from :class:`tess.voronoi.VoronoiTessellation`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xPoints : ndarray</span>
+<span class="sd">        Array of cartesian ``x`` locations of each data point.</span>
+<span class="sd">    yPoints : ndarray</span>
+<span class="sd">        Array of cartesian ``y`` locations of each data point.</span>
+<span class="sd">    densPoints : ndarray</span>
+<span class="sd">        Density *or weight* of each point. For an equal-S/N generator, this</span>
+<span class="sd">        should be set to :math:`(S/N)^2`. For an equal number generator this</span>
+<span class="sd">        can be simple an array of ones.</span>
+<span class="sd">    node_xy : ndarray</span>
+<span class="sd">        A ``(n_points, 2)`` array of coordinates of pre-computed generators</span>
+<span class="sd">        for the tessellation. You can use</span>
+<span class="sd">        :class:`tess.point_accretion.PointAccretion` and subclasses to build</span>
+<span class="sd">        an array of generators accordinate to target mass or S/N.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xPoints</span><span class="p">,</span> <span class="n">yPoints</span><span class="p">,</span> <span class="n">densPoints</span><span class="p">,</span> <span class="n">node_xy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">xNode</span><span class="p">,</span> <span class="n">yNode</span><span class="p">,</span> <span class="n">vBinNum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tessellate</span><span class="p">(</span><span class="n">xPoints</span><span class="p">,</span> <span class="n">yPoints</span><span class="p">,</span> <span class="n">densPoints</span><span class="p">,</span>
+                <span class="n">node_xy</span><span class="o">=</span><span class="n">node_xy</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CVTessellation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">xNode</span><span class="p">,</span> <span class="n">yNode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vBinNum</span> <span class="o">=</span> <span class="n">vBinNum</span>
+    
+    <span class="k">def</span> <span class="nf">_tessellate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xPoints</span><span class="p">,</span> <span class="n">yPoints</span><span class="p">,</span> <span class="n">densPoints</span><span class="p">,</span> <span class="n">node_xy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the centroidal voronoi tessellation itself.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">densPoints</span> <span class="o">=</span> <span class="n">densPoints</span>
+        
+        <span class="c"># Obtain pre-generator node coordinates</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">node_xy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">node_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">xPoints</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">yPoints</span><span class="o">.</span><span class="n">copy</span><span class="p">()))</span>
+
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">xPoints</span><span class="p">,</span> <span class="n">yPoints</span><span class="p">))</span>
+        <span class="n">node_xy</span><span class="p">,</span> <span class="n">v_bin_numbers</span> <span class="o">=</span> <span class="n">lloyd</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">densPoints</span><span class="p">,</span> <span class="n">node_xy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">node_xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">node_xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">v_bin_numbers</span>
+
+    <span class="k">def</span> <span class="nf">_run_py_lloyds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xPoints</span><span class="p">,</span> <span class="n">yPoints</span><span class="p">,</span> <span class="n">densPoints</span><span class="p">,</span> <span class="n">xNode</span><span class="p">,</span> <span class="n">yNode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run Lloyd&#39;s algorithm in pure-python.&quot;&quot;&quot;</span>
+        <span class="n">nPoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xPoints</span><span class="p">)</span>
+        <span class="n">nNodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xNode</span><span class="p">)</span>
+        
+        <span class="c"># vBinNum holds the Voronoi bin numbers for each data point</span>
+        <span class="n">vBinNum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nPoints</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+        
+        <span class="n">iters</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">xNodeOld</span> <span class="o">=</span> <span class="n">xNode</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">yNodeOld</span> <span class="o">=</span> <span class="n">yNode</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nPoints</span><span class="p">):</span>
+                <span class="c"># Assign each point to a node. A point is assigned to the</span>
+                <span class="c"># node that it is closest to.</span>
+                <span class="c"># Note: this now means the voronoi bin numbers start from zero</span>
+                <span class="n">vBinNum</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">((</span><span class="n">xPoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">xNode</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span>
+                        <span class="o">+</span> <span class="p">(</span><span class="n">yPoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">yNode</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">)</span>
+            
+            <span class="c"># Compute centroids of these Vorononi Bins. But now using a dens^2</span>
+            <span class="c"># weighting. The dens^2 weighting produces equal-mass Voronoi bins.</span>
+            <span class="c"># See Capellari and Copin (2003)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nNodes</span><span class="p">):</span>
+                <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vBinNum</span> <span class="o">==</span> <span class="n">j</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">xBar</span><span class="p">,</span> <span class="n">yBar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weighted_centroid</span><span class="p">(</span><span class="n">xPoints</span><span class="p">[</span><span class="n">indices</span><span class="p">],</span>
+                            <span class="n">yPoints</span><span class="p">[</span><span class="n">indices</span><span class="p">],</span> <span class="n">densPoints</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># if the Voronoi bin is empty then give (0,0) as its</span>
+                    <span class="c"># centroid then we can catch these empty bins later</span>
+                    <span class="n">xBar</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">yBar</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">xNode</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">xBar</span>
+                <span class="n">yNode</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">yBar</span>
+            
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">xNode</span> <span class="o">-</span> <span class="n">xNodeOld</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span>
+                    <span class="o">+</span> <span class="p">(</span><span class="n">yNode</span> <span class="o">-</span> <span class="n">yNodeOld</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">)</span>
+            <span class="n">iters</span> <span class="o">=</span> <span class="n">iters</span> <span class="o">+</span> <span class="mi">1</span>
+            
+            <span class="k">print</span> <span class="s">&quot;CVT Iteration: </span><span class="si">%i</span><span class="s">, Delta </span><span class="si">%f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">iters</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">delta</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">print</span> <span class="s">&quot;CVT complete&quot;</span>
+        <span class="k">return</span> <span class="n">xNode</span><span class="p">,</span> <span class="n">yNode</span><span class="p">,</span> <span class="n">vBinNum</span>
+    
+    <span class="k">def</span> <span class="nf">_weighted_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">density</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the density-weighted centroid of one bin. See Equation 4 of</span>
+<span class="sd">        Cappellari &amp; Copin (2003).</span>
+<span class="sd">        </span>
+<span class="sd">        :param x: array of x-axis spatial coordinates</span>
+<span class="sd">        :param y: array of y-axis spatial coordiantes</span>
+<span class="sd">        :param density: array containing the weighting values</span>
+<span class="sd">        </span>
+<span class="sd">        :return: tuple `(xBar, yBar)`, the weighted centroid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">density</span><span class="p">)</span>
+        <span class="n">xBar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">density</span><span class="p">)</span> <span class="o">/</span> <span class="n">mass</span>
+        <span class="n">yBar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">density</span><span class="p">)</span> <span class="o">/</span> <span class="n">mass</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">xBar</span><span class="p">,</span> <span class="n">yBar</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="CVTessellation.get_node_membership"><a class="viewcode-back" href="../../tess/api/cvtessellation.html#tess.cvtessellation.CVTessellation.get_node_membership">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Indices into voronoi bins for each point.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        vBinNum : ndarray</span>
+<span class="sd">            An array, the length of the input point arrays, which have</span>
+<span class="sd">            indices into the node arrays of</span>
+<span class="sd">            :meth:`tess.CVTessellation.get_nodes()`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vBinNum</span>
+</div>
+<div class="viewcode-block" id="CVTessellation.get_node_weights"><a class="viewcode-back" href="../../tess/api/cvtessellation.html#tess.cvtessellation.CVTessellation.get_node_weights">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Weight of each Voronoi bin.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        nodeWeights : ndarray</span>
+<span class="sd">            Array with sum of the density for the nodes, same order as</span>
+<span class="sd">            :meth:`tess.CVTessellation.get_nodes()`&quot;&quot;&quot;</span>
+        <span class="n">nNodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">)</span>
+        <span class="n">nodeWeights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nNodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nNodes</span><span class="p">):</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vBinNum</span> <span class="o">==</span> <span class="n">i</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">nodeWeights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">densPoints</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">nodeWeights</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The tess.cvtessellation Module &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="API Reference" href="index.html" />
+    <link rel="next" title="The tess.delaunay Module" href="delaunay.html" />
+    <link rel="prev" title="API Reference" href="index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="delaunay.html" title="The tess.delaunay Module">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="index.html" title="API Reference">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
+      <li><a href="index.html" accesskey="U">API Reference</a> &raquo;</li>
+      
+      <li>The <tt class="docutils literal"><span class="pre">tess.cvtessellation</span></tt> Module</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tess.cvtessellation">
+<span id="the-tess-cvtessellation-module"></span><h1>The <a class="reference internal" href="#module-tess.cvtessellation" title="tess.cvtessellation"><tt class="xref py py-obj docutils literal"><span class="pre">tess.cvtessellation</span></tt></a> Module<a class="headerlink" href="#module-tess.cvtessellation" title="Permalink to this headline">¶</a></h1>
+<p>Centroidal Voronoi Tessellations (using Lloyd&#8217;s algorithm).</p>
+<dl class="class">
+<dt id="tess.cvtessellation.CVTessellation">
+<em class="property">class </em><tt class="descclassname">tess.cvtessellation.</tt><tt class="descname">CVTessellation</tt><big>(</big><em>xPoints</em>, <em>yPoints</em>, <em>densPoints</em>, <em>node_xy=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses Lloyd&#8217;s algorithm to assign data points to Voronoi bins so that
+each bin has an equal mass.</p>
+<p>Inherits from <a class="reference internal" href="voronoi.html#tess.voronoi.VoronoiTessellation" title="tess.voronoi.VoronoiTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.voronoi.VoronoiTessellation</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xPoints</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of cartesian <tt class="docutils literal"><span class="pre">x</span></tt> locations of each data point.</p>
+</div></blockquote>
+<p><strong>yPoints</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of cartesian <tt class="docutils literal"><span class="pre">y</span></tt> locations of each data point.</p>
+</div></blockquote>
+<p><strong>densPoints</strong> : ndarray</p>
+<blockquote>
+<div><p>Density <em>or weight</em> of each point. For an equal-S/N generator, this
+should be set to <img class="math" src="../../_images/math/db333e6674983bf9d313b131692057b7bab32a4c.png" alt="(S/N)^2"/>. For an equal number generator this
+can be simple an array of ones.</p>
+</div></blockquote>
+<p><strong>node_xy</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>A <tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">2)</span></tt> array of coordinates of pre-computed generators
+for the tessellation. You can use
+<tt class="xref py py-class docutils literal"><span class="pre">tess.point_accretion.PointAccretion</span></tt> and subclasses to build
+an array of generators accordinate to target mass or S/N.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tess.cvtessellation.CVTessellation.get_node_membership">
+<tt class="descname">get_node_membership</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation.get_node_membership"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation.get_node_membership" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices into voronoi bins for each point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vBinNum</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>An array, the length of the input point arrays, which have
+indices into the node arrays of
+<tt class="xref py py-meth docutils literal"><span class="pre">tess.CVTessellation.get_nodes()</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.cvtessellation.CVTessellation.get_node_weights">
+<tt class="descname">get_node_weights</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation.get_node_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation.get_node_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weight of each Voronoi bin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nodeWeights</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>Array with sum of the density for the nodes, same order as
+<tt class="xref py py-meth docutils literal"><span class="pre">tess.CVTessellation.get_nodes()</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">tess.cvtessellation</span></tt> Module</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../../_sources/tess/api/cvtessellation.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

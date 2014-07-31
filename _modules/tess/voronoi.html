@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tess.voronoi &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tess.voronoi</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Representation of Voronoi Tessellations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">griddata</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
+
+
+<div class="viewcode-block" id="VoronoiTessellation"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation">[docs]</a><span class="k">class</span> <span class="nc">VoronoiTessellation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Voronoi Tessellation, defined by a set of nodes on a 2D plane.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : ndarray, (n_nodes, 1)</span>
+<span class="sd">        Array of node x-coordinates.</span>
+<span class="sd">    y : ndarray, (n_nodes, 1)</span>
+<span class="sd">        Array of node y-coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VoronoiTessellation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xNode</span> <span class="o">=</span> <span class="n">x</span>  <span class="c">#: Array of node x-coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yNode</span> <span class="o">=</span> <span class="n">y</span>  <span class="c">#: Array of node y-coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#: 2D `ndarray` of `vBinNum` for each pixel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cellAreas</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#: 1D array of Voronoi cell areas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#: Length-2 array of min, max coords of x pixel grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#: Length-2 array of min, max coords of y pixel grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c">#: a PyFITS header representing pixel grid</span>
+
+<div class="viewcode-block" id="VoronoiTessellation.set_pixel_grid"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.set_pixel_grid">[docs]</a>    <span class="k">def</span> <span class="nf">set_pixel_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a pixel grid bounding box for the tessellation. This is</span>
+<span class="sd">        used when rendering Voronoi fields or computing cell areas.</span>
+
+<span class="sd">        Setting the pixel grid is a prerequistie for running the methods:</span>
+
+<span class="sd">        - :meth:`make_segmap` and :meth:`save_segmap`</span>
+<span class="sd">        - :meth:`compute_cell_areas`</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xlim : tuple</span>
+<span class="sd">            Tuple of (min, max) pixel range along x-axis.</span>
+<span class="sd">        ylim : tuple</span>
+<span class="sd">            Tuple of of (min, max) pixel range along y-axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;xlim must be (min, max) sequence&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;ylim must be (min, max) sequence&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span> <span class="o">=</span> <span class="n">xlim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span> <span class="o">=</span> <span class="n">ylim</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.set_fits_grid"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.set_fits_grid">[docs]</a>    <span class="k">def</span> <span class="nf">set_fits_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">header</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience wrapper to :meth:`set_pixel_grid` if a FITS header is</span>
+<span class="sd">        available. As a bonus, the FITS header will be used when saving</span>
+<span class="sd">        any rendered fields to FITS.</span>
+<span class="sd">        </span>
+<span class="sd">        .. note:: The header is available as the :attr:`header` attribute.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        header : :class:`astropy.io.fits.Header`</span>
+<span class="sd">            An astropy FITS image header; defines area of rendered Voronoi</span>
+<span class="sd">            images (e.g. segmentaion maps or fields).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Assume origin at 1, FITS standard</span>
+        <span class="n">xlim</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">header</span><span class="p">[</span><span class="s">&#39;NAXIS2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ylim</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">header</span><span class="p">[</span><span class="s">&#39;NAXIS1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pixel_grid</span><span class="p">(</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="o">=</span> <span class="n">header</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.make_segmap"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.make_segmap">[docs]</a>    <span class="k">def</span> <span class="nf">make_segmap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a pixel segmentation map that paints the Voronoi bin number</span>
+<span class="sd">        on Voronoi pixels.</span>
+<span class="sd">        </span>
+<span class="sd">        The result is stored as the :attr:`segmap` attribute and returned to</span>
+<span class="sd">        the caller.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        segmap : ndarray</span>
+<span class="sd">            The segmentation map array, :attr:`segmap`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_voronoi_field</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yNode</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">print</span> <span class="s">&quot;segmap.shape&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.render_voronoi_field"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.render_voronoi_field">[docs]</a>    <span class="k">def</span> <span class="nf">render_voronoi_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeValues</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Renders the Voronoi field onto the pixel context with the given</span>
+<span class="sd">        `nodeValues` for each Voronoi cell.</span>
+
+<span class="sd">        .. note:: Must set the pixel grid context with</span>
+<span class="sd">           either :meth:`set_pixel_grid` or :meth:`set_fits_grid` first!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nodeValues : ndarray</span>
+<span class="sd">            1D array of values for Voronoi nodes (must be same length as</span>
+<span class="sd">            :attr:`xNode` and :attr:`xNode`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        field : ndarray</span>
+<span class="sd">            2D array (image) of Voronoi field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;Need to run `set_pixel_grid()` first&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;Need to run `set_pixel_grid()` first&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodeValues</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">),</span> <span class="s">&quot;Not the same number of&quot;</span> \
+                <span class="s">&quot; node values as nodes!&quot;</span>
+
+        <span class="c"># Pixel grid to compute Voronoi field on</span>
+        <span class="n">ygrid</span><span class="p">,</span> <span class="n">xgrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c"># Package xNode and yNode into Nx2 array</span>
+        <span class="c"># y is first index if FITS data is also structured this way</span>
+        <span class="n">yxNode</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">yNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c"># Nearest neighbour interpolation is equivalent to Voronoi pixel</span>
+        <span class="c"># tessellation!</span>
+        <span class="k">return</span> <span class="n">griddata</span><span class="p">(</span><span class="n">yxNode</span><span class="p">,</span> <span class="n">nodeValues</span><span class="p">,</span> <span class="p">(</span><span class="n">xgrid</span><span class="p">,</span> <span class="n">ygrid</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;nearest&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.save_segmap"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.save_segmap">[docs]</a>    <span class="k">def</span> <span class="nf">save_segmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitsPath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience wrapper to :meth:`make_segmap` that saves the</span>
+<span class="sd">        segmentation map to a FITS file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fitsPath : str</span>
+<span class="sd">            Full filename destination of FITS file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">astropy.io.fits</span>
+        <span class="n">fitsDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">fitsPath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fitsDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s">&#39;&#39;</span> <span class="ow">and</span> <span class="n">fitsDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fitsDir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">fitsDir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_segmap</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fitsPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">,</span>
+                    <span class="n">clobber</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fitsPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span><span class="p">,</span> <span class="n">clobber</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.compute_cell_areas"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.compute_cell_areas">[docs]</a>    <span class="k">def</span> <span class="nf">compute_cell_areas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flagmap</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the areas of Voronoi cells; result is stored in the</span>
+<span class="sd">        `self.cellAreas` attribute.</span>
+
+<span class="sd">        .. note:: This method requires that the segmentation map is computed</span>
+<span class="sd">           (see :meth:`make_segmap`), and is potentially expensive (I&#39;m working</span>
+<span class="sd">           on a faster implementation). Uses :func:`numpy.bincount` to count</span>
+<span class="sd">           number of pixels in the segmentation map with a given Voronoi</span>
+<span class="sd">           cell value. I&#39;d prefer to calculate these from simple geometry,</span>
+<span class="sd">           but no good python packages exist for defining Voronoi cell</span>
+<span class="sd">           polygons.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        flagmap : ndarray</span>
+<span class="sd">            Any pixels in the flagmap with values greater than zero will be</span>
+<span class="sd">            omitted from the area count. Thus the cell areas will report</span>
+<span class="sd">            *useable* pixel areas, rather than purely geometric areas. This is</span>
+<span class="sd">            useful to avoid bias in density maps due to &#39;bad&#39; pixels.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cellAreas : ndarray</span>
+<span class="sd">            Array of cell areas (square pixels). This array is also</span>
+<span class="sd">            stored as :attr:`cellAreas`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&quot;Compute a segmentation map first&quot;</span>
+        
+        <span class="k">if</span> <span class="n">flagmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># If a flagmap is available, flagged pixels are set to NaN</span>
+            <span class="n">_segmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">_segmap</span><span class="p">[</span><span class="n">flagmap</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_segmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">segmap</span>
+        <span class="n">pixelCounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">_segmap</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cellAreas</span> <span class="o">=</span> <span class="n">pixelCounts</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellAreas</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.get_nodes"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.get_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the x and y positions of the Voronoi nodes.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        xNode : ndarray</span>
+<span class="sd">            X-coordinates of Voronoi nodes.</span>
+<span class="sd">        yNode : ndarray</span>
+<span class="sd">            Y-coordinates of Voronoi nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yNode</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.partition_points"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.partition_points">[docs]</a>    <span class="k">def</span> <span class="nf">partition_points</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Partition an arbitrary set of points, defined by `x` and `y`</span>
+<span class="sd">        coordinates, onto the Voronoi tessellation.</span>
+<span class="sd">        </span>
+<span class="sd">        This method uses :class:`scipy.spatial.cKDTree` to efficiently handle</span>
+<span class="sd">        Voronoi assignment.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray</span>
+<span class="sd">            Array of point `x` coordinates</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of point `y` coordinates</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        indices : ndarray</span>
+<span class="sd">            Array of indices of Voronoi nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nodeData</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yNode</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">pointData</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">nodeData</span><span class="p">)</span>
+        <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">pointData</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">indices</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.sum_cell_point_mass"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.sum_cell_point_mass">[docs]</a>    <span class="k">def</span> <span class="nf">sum_cell_point_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Given a set of points with masses, computes the mass within</span>
+<span class="sd">        each Voronoi cell.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray</span>
+<span class="sd">            X-coordinates of points to assign to Voronoi cells.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Y-coordinates of points to assign to Voronoi cells.</span>
+<span class="sd">        mass : ndarray</span>
+<span class="sd">            Mass of each point. If `None`, then each point is assumed to have</span>
+<span class="sd">            unit mass.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mass : ndarray</span>
+<span class="sd">            Sum of masses of points within each Voronoi cell.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mass</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">cellIndices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">partition_points</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">cellMass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cellMass</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.cell_point_density"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.cell_point_density">[docs]</a>    <span class="k">def</span> <span class="nf">cell_point_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flagmap</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute density of points in each Voronoi cell.</span>
+
+<span class="sd">        .. note:: This method calls :meth:`compute_cell_areas` if the cell</span>
+<span class="sd">           areas have not been compute yet. The `flagmap` parameter can be</span>
+<span class="sd">           passed to that method. If :attr:`cellAreas` is not `None`,</span>
+<span class="sd">           then new cell areas will *not* be computed.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : ndarray</span>
+<span class="sd">            1D array of point x-coordinates</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            1D array of point y-coordinates</span>
+<span class="sd">        mass : ndarray</span>
+<span class="sd">            Optional 1D array of point masses (or *weights*). If `None`, then</span>
+<span class="sd">            each point is assumed to have unit mass.</span>
+<span class="sd">        flagmap : ndarray</span>
+<span class="sd">            Optional flagmap to be passed to :meth:`compute_cell_areas`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        density : ndarray</span>
+<span class="sd">            Density of each Voronoi cell, in units of mass / square pixel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellAreas</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_cell_areas</span><span class="p">(</span><span class="n">flagmap</span><span class="o">=</span><span class="n">flagmap</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_cell_point_mass</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellAreas</span>
+</div>
+<div class="viewcode-block" id="VoronoiTessellation.plot_nodes"><a class="viewcode-back" href="../../tess/api/voronoi.html#tess.voronoi.VoronoiTessellation.plot_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">plot_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plotPath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plots the points in each bin as a different colour</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        plotPath : str</span>
+<span class="sd">            Path where the plot will be saved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.backends.backend_pdf</span> \
+                <span class="kn">import</span> <span class="n">FigureCanvasPdf</span> <span class="k">as</span> <span class="n">FigureCanvas</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
+        
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">Figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="n">canvas</span> <span class="o">=</span> <span class="n">FigureCanvas</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xNode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yNode</span><span class="p">,</span> <span class="s">&#39;ok&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xlim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xlim</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ylim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ylim</span><span class="p">)</span>
+        <span class="n">canvas</span><span class="o">.</span><span class="n">print_figure</span><span class="p">(</span><span class="n">plotPath</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

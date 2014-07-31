@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User’s Guide to Tess &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../index.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="Documentation" href="../index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api/index.html" title="API Reference">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="../index.html" title="Documentation">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      
+      <li>User&#8217;s Guide to Tess</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="user-s-guide-to-tess">
+<h1>User&#8217;s Guide to Tess<a class="headerlink" href="#user-s-guide-to-tess" title="Permalink to this headline">¶</a></h1>
+<p>Tess is a Python package that supports three basic, and related, analysis tasks:</p>
+<ol class="arabic simple">
+<li>Adaptively binning a spatial dataset to maximize resolution and S/N.</li>
+<li>Estimating the density field in a spatial dataset</li>
+<li>Rendering a density field, or any other field, using the tessellation.</li>
+</ol>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/cvtessellation.html">The <tt class="docutils literal"><span class="pre">tess.cvtessellation</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/delaunay.html">The <tt class="docutils literal"><span class="pre">tess.delaunay</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/voronoi.html">The <tt class="docutils literal"><span class="pre">tess.voronoi</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/point_accretion.html">The <tt class="docutils literal"><span class="pre">tess.point_accretion</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pixel_accretion.html">The <tt class="docutils literal"><span class="pre">tess.pixel_accretion</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/starfield.html">The <tt class="docutils literal"><span class="pre">tess.starfield</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="inspiration">
+<h2>Inspiration<a class="headerlink" href="#inspiration" title="Permalink to this headline">¶</a></h2>
+<p>Tess grew directly from the inspiration of <a class="reference external" href="http://adsabs.harvard.edu/abs/2003MNRAS.342..345C">Cappellari &amp; Copin (2003)</a>, which introduced the Centroidal Voronoi Tessellation to astronomy.
+The methods used for estimating 2D density fields with Delaunay tessellations (<em>i.e.</em>, the DTFE) are based on <a class="reference external" href="http://adsabs.harvard.edu/abs/2000A%26A...363L..29S">Schaap &amp;  van de Weygaert (2000)</a>.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="../genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="../py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="../search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">User&#8217;s Guide to Tess</a><ul>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+<li><a class="reference internal" href="#inspiration">Inspiration</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/tess/index.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tess.pixel_accretion &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tess.pixel_accretion</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># encoding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Pixel accretion methods for segmenting images.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">heappop</span><span class="p">,</span> <span class="n">heapify</span><span class="p">,</span> <span class="n">heappush</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="PixelAccretor"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.PixelAccretor">[docs]</a><span class="k">class</span> <span class="nc">PixelAccretor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Baseclass for pixel accretion.</span>
+
+<span class="sd">    Unlike the point accretion algorithms in :mod:`tess.point_accretion`,</span>
+<span class="sd">    these pixel accretion tools uses the grid geometry of images and only</span>
+<span class="sd">    accrete pixels are connected neighbours.</span>
+<span class="sd">    </span>
+<span class="sd">    Users are expected to build or use a subclass of :class:`PixelAccretor`</span>
+<span class="sd">    that need to implement the following methods</span>
+
+<span class="sd">    - ``bin_started`` when a new bin is seeded.</span>
+<span class="sd">    - ``candidate_quality``, give quality value for pixel w.r.t bin.</span>
+<span class="sd">    - ``accept_pixel``, True if pixel should be accepted.</span>
+<span class="sd">    - ``pixel_added``, called when a pixel is accepted.</span>
+<span class="sd">    - ``close_bin``, called when a bin is completed.</span>
+
+<span class="sd">    See :class:`tess.pixel_accretion.IsoIntensityAccrector` for an example.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PixelAccretor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PixelAccretor.accrete"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.PixelAccretor.accrete">[docs]</a>    <span class="k">def</span> <span class="nf">accrete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ij0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the pixel accretion algorithm, starting with pixel ij0.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : tuple</span>
+<span class="sd">            Index of first pixel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># self.n_unbinned_pixels = self.image.shape[0] * self.image.shape[1]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_edge_pixels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nrows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">n_bins</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">ij0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_bin</span><span class="p">(</span><span class="n">ij0</span><span class="p">,</span> <span class="n">n_bins</span><span class="p">)</span>
+            <span class="n">ij0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_start_point</span><span class="p">()</span>
+            <span class="n">n_bins</span> <span class="o">+=</span> <span class="mi">1</span>
+</div>
+    <span class="k">def</span> <span class="nf">_make_bin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ij0</span><span class="p">,</span> <span class="n">bin_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make a new bin, starting with pixel ij0.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">ij0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># to keep index into heap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">ij0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bin_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_edges</span><span class="p">(</span><span class="n">ij0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bin_started</span><span class="p">()</span>  <span class="c"># call to subclass</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">:</span>  <span class="c"># while there are edges</span>
+            <span class="c"># Select a new pixel to add</span>
+            <span class="n">quality</span><span class="p">,</span> <span class="n">ij0</span> <span class="o">=</span> <span class="n">heappop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">accept_pixel</span><span class="p">(</span><span class="n">ij0</span><span class="p">):</span>
+                <span class="c"># Add pixel</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">ij0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ij0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">ij0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bin_index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_edges</span><span class="p">(</span><span class="n">ij0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pixel_added</span><span class="p">()</span>  <span class="c"># call to subclass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Reject pixel and stop accretion</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close_bin</span><span class="p">()</span>  <span class="c"># call to subclass</span>
+                <span class="k">break</span>
+        <span class="c"># Add remaining edges to the global edge list</span>
+        <span class="n">leftovers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c"># Remove accreted points from global edges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_edge_pixels</span> <span class="o">-=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_edge_pixels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_edge_pixels</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">leftovers</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_add_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ij0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add edges surrounding ij0 that aren&#39;t binned already. As edges are</span>
+<span class="sd">        added, the super class is asked to make a scalar judgement of the</span>
+<span class="sd">        desireability of this pixel.&quot;&quot;&quot;</span>
+        <span class="c"># Top neighbour</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nrows</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+                <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">:</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                    <span class="n">heapify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+
+        <span class="c"># Bottom neighbour</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+                <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">:</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                    <span class="n">heapify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+
+        <span class="c"># Right neighbour</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncols</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+                <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">:</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                    <span class="n">heapify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+
+        <span class="c"># Left neighbour</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+                <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">:</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                    <span class="n">heapify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PixelAccretor.update_edge_heap"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.PixelAccretor.update_edge_heap">[docs]</a>    <span class="k">def</span> <span class="nf">update_edge_heap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;May be called by the subclass whenever the &#39;quality&#39; values of edge</span>
+<span class="sd">        pixels need to be recomputed because the bin itself has changed</span>
+<span class="sd">        significantly.</span>
+
+<span class="sd">        *It is up to the subclass to call this method as necessary*. Calling</span>
+<span class="sd">        this method infrequently will speed up the pixel accretion, but may</span>
+<span class="sd">        cause suboptimal choices of pixels being accreted into bins.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">new_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">new_v</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_q</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_v</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_v</span><span class="p">)</span>
+        <span class="n">heapify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_heap</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_new_start_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Suggest a new starting pixel for next bin.</span>
+<span class="sd">        </span>
+<span class="sd">        This pixel comes from the pool of edge pixels.</span>
+<span class="sd">        Returns ``None`` if no edge pixels are available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ij_next</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_edge_pixels</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="n">ij_next</span>
+
+</div>
+<div class="viewcode-block" id="IsoIntensityAccretor"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor">[docs]</a><span class="k">class</span> <span class="nc">IsoIntensityAccretor</span><span class="p">(</span><span class="n">PixelAccretor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bin pixels to make iso-intensity regions.</span>
+
+<span class="sd">    Each region in the image will have a standard deviation of pixel</span>
+<span class="sd">    intensities within a user-defined limit. This can be thought of as</span>
+<span class="sd">    a way of building non-parameteric isophotal regions.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : ndarray</span>
+<span class="sd">        The image to be segmented.</span>
+<span class="sd">    intensity_sigma_limit : float</span>
+<span class="sd">        Maximum standard deviation of pixel intensities permitted in a</span>
+<span class="sd">        single bin.</span>
+<span class="sd">    min_pixels : int</span>
+<span class="sd">        Minimum number of pixels that need to be in a single bin.</span>
+<span class="sd">    max_pixels : int</span>
+<span class="sd">        Maximum number of pixels that can be accreted into a single bin.</span>
+<span class="sd">        If ``None``, then no limit is enforced.</span>
+<span class="sd">    max_shift_frac : flaot</span>
+<span class="sd">        Maximum fractional change of the bin&#39;s mean before the edge pixel</span>
+<span class="sd">        heap is updated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">intensity_sigma_limit</span><span class="p">,</span>
+            <span class="n">min_pixels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_pixels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_shift_frac</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">IsoIntensityAccretor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_sigma_limit</span> <span class="o">=</span> <span class="n">intensity_sigma_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_pixels</span> <span class="o">=</span> <span class="n">min_pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span> <span class="o">=</span> <span class="n">max_pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_shift_frac</span> <span class="o">=</span> <span class="n">max_shift_frac</span>
+
+    <span class="k">def</span> <span class="nf">_update_bin_mean_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute self._bin_mean_intensity.&quot;&quot;&quot;</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span> \
+                <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="n">mu</span>
+
+<div class="viewcode-block" id="IsoIntensityAccretor.bin_started"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.bin_started">[docs]</a>    <span class="k">def</span> <span class="nf">bin_started</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called by :class`PixelAccretor` baseclass when a new bin has been</span>
+<span class="sd">        started (and a seed pixel has been added).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_bin_mean_intensity</span><span class="p">()</span>
+        <span class="c"># Since this is the first time mean_shift_intensity is added,</span>
+        <span class="c"># hold onto the original value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span>
+</div>
+<div class="viewcode-block" id="IsoIntensityAccretor.candidate_quality"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.candidate_quality">[docs]</a>    <span class="k">def</span> <span class="nf">candidate_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gives the scalar quality of adding this pixel with respect to the</span>
+<span class="sd">        current bin. Pixels with the smallest &#39;quality&#39; value are accreted.</span>
+<span class="sd">        Here quality is defined as absolute difference of the pixel&#39;s intensity</span>
+<span class="sd">        and the mean intensity of the existing bin.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : tuple</span>
+<span class="sd">            The pixel index to be tested.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="IsoIntensityAccretor.accept_pixel"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.accept_pixel">[docs]</a>    <span class="k">def</span> <span class="nf">accept_pixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test a pixel, return ``True`` if it should be added to the bin.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : tuple</span>
+<span class="sd">            The pixel index to be tested..</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">npix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">npix</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_pixels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span> <span class="ow">and</span> <span class="n">npix</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">intensities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span> <span class="o">+</span> <span class="p">[</span><span class="n">idx</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">intensities</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity_sigma_limit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="IsoIntensityAccretor.pixel_added"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.pixel_added">[docs]</a>    <span class="k">def</span> <span class="nf">pixel_added</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called once a pixel has been added.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_bin_mean_intensity</span><span class="p">()</span>
+        <span class="n">frac_diff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span> \
+            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">frac_diff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_shift_frac</span><span class="p">:</span>
+            <span class="c"># Update the edge heap if the mean has shifted by more than 5%.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_edge_heap</span><span class="p">()</span>
+            <span class="c"># Update definition of original bin intensity</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span>
+</div>
+<div class="viewcode-block" id="IsoIntensityAccretor.close_bin"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.close_bin">[docs]</a>    <span class="k">def</span> <span class="nf">close_bin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when the current bin is completed.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">None</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

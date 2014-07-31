@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The tess.pixel_accretion Module &mdash; Tess v0.0.dev76</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev76',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="up" title="API Reference" href="index.html" />
+    <link rel="next" title="The tess.starfield Module" href="starfield.html" />
+    <link rel="prev" title="The tess.point_accretion Module" href="point_accretion.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="starfield.html" title="The tess.starfield Module">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="point_accretion.html" title="The tess.point_accretion Module">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../../index.html">Tess v0.0.dev76</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
+      <li><a href="index.html" accesskey="U">API Reference</a> &raquo;</li>
+      
+      <li>The <tt class="docutils literal"><span class="pre">tess.pixel_accretion</span></tt> Module</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tess.pixel_accretion">
+<span id="the-tess-pixel-accretion-module"></span><h1>The <a class="reference internal" href="#module-tess.pixel_accretion" title="tess.pixel_accretion"><tt class="xref py py-obj docutils literal"><span class="pre">tess.pixel_accretion</span></tt></a> Module<a class="headerlink" href="#module-tess.pixel_accretion" title="Permalink to this headline">¶</a></h1>
+<p>Pixel accretion methods for segmenting images.</p>
+<dl class="class">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor">
+<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">IsoIntensityAccretor</tt><big>(</big><em>image</em>, <em>intensity_sigma_limit</em>, <em>min_pixels=1</em>, <em>max_pixels=None</em>, <em>max_shift_frac=0.05</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bin pixels to make iso-intensity regions.</p>
+<p>Each region in the image will have a standard deviation of pixel
+intensities within a user-defined limit. This can be thought of as
+a way of building non-parameteric isophotal regions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image</strong> : ndarray</p>
+<blockquote>
+<div><p>The image to be segmented.</p>
+</div></blockquote>
+<p><strong>intensity_sigma_limit</strong> : float</p>
+<blockquote>
+<div><p>Maximum standard deviation of pixel intensities permitted in a
+single bin.</p>
+</div></blockquote>
+<p><strong>min_pixels</strong> : int</p>
+<blockquote>
+<div><p>Minimum number of pixels that need to be in a single bin.</p>
+</div></blockquote>
+<p><strong>max_pixels</strong> : int</p>
+<blockquote>
+<div><p>Maximum number of pixels that can be accreted into a single bin.
+If <tt class="docutils literal"><span class="pre">None</span></tt>, then no limit is enforced.</p>
+</div></blockquote>
+<p><strong>max_shift_frac</strong> : flaot</p>
+<blockquote class="last">
+<div><p>Maximum fractional change of the bin&#8217;s mean before the edge pixel
+heap is updated.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor.accept_pixel">
+<tt class="descname">accept_pixel</tt><big>(</big><em>idx</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor.accept_pixel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor.accept_pixel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test a pixel, return <tt class="docutils literal"><span class="pre">True</span></tt> if it should be added to the bin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>idx</strong> : tuple</p>
+<blockquote class="last">
+<div><p>The pixel index to be tested..</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor.bin_started">
+<tt class="descname">bin_started</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor.bin_started"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor.bin_started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by :class`PixelAccretor` baseclass when a new bin has been
+started (and a seed pixel has been added).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor.candidate_quality">
+<tt class="descname">candidate_quality</tt><big>(</big><em>idx</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor.candidate_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor.candidate_quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the scalar quality of adding this pixel with respect to the
+current bin. Pixels with the smallest &#8216;quality&#8217; value are accreted.
+Here quality is defined as absolute difference of the pixel&#8217;s intensity
+and the mean intensity of the existing bin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>idx</strong> : tuple</p>
+<blockquote class="last">
+<div><p>The pixel index to be tested.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor.close_bin">
+<tt class="descname">close_bin</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor.close_bin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor.close_bin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the current bin is completed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.pixel_accretion.IsoIntensityAccretor.pixel_added">
+<tt class="descname">pixel_added</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor.pixel_added"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor.pixel_added" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called once a pixel has been added.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tess.pixel_accretion.PixelAccretor">
+<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">PixelAccretor</tt><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Baseclass for pixel accretion.</p>
+<p>Unlike the point accretion algorithms in <a class="reference internal" href="point_accretion.html#module-tess.point_accretion" title="tess.point_accretion"><tt class="xref py py-mod docutils literal"><span class="pre">tess.point_accretion</span></tt></a>,
+these pixel accretion tools uses the grid geometry of images and only
+accrete pixels are connected neighbours.</p>
+<p>Users are expected to build or use a subclass of <a class="reference internal" href="#tess.pixel_accretion.PixelAccretor" title="tess.pixel_accretion.PixelAccretor"><tt class="xref py py-class docutils literal"><span class="pre">PixelAccretor</span></tt></a>
+that need to implement the following methods</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">bin_started</span></tt> when a new bin is seeded.</li>
+<li><tt class="docutils literal"><span class="pre">candidate_quality</span></tt>, give quality value for pixel w.r.t bin.</li>
+<li><tt class="docutils literal"><span class="pre">accept_pixel</span></tt>, True if pixel should be accepted.</li>
+<li><tt class="docutils literal"><span class="pre">pixel_added</span></tt>, called when a pixel is accepted.</li>
+<li><tt class="docutils literal"><span class="pre">close_bin</span></tt>, called when a bin is completed.</li>
+</ul>
+<p>See <tt class="xref py py-class docutils literal"><span class="pre">tess.pixel_accretion.IsoIntensityAccrector</span></tt> for an example.</p>
+<dl class="method">
+<dt id="tess.pixel_accretion.PixelAccretor.accrete">
+<tt class="descname">accrete</tt><big>(</big><em>ij0</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor.accrete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.accrete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the pixel accretion algorithm, starting with pixel ij0.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>idx</strong> : tuple</p>
+<blockquote class="last">
+<div><p>Index of first pixel.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.pixel_accretion.PixelAccretor.update_edge_heap">
+<tt class="descname">update_edge_heap</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor.update_edge_heap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.update_edge_heap" title="Permalink to this definition">¶</a></dt>
+<dd><p>May be called by the subclass whenever the &#8216;quality&#8217; values of edge
+pixels need to be recomputed because the bin itself has changed
+significantly.</p>
+<p><em>It is up to the subclass to call this method as necessary</em>. Calling
+this method infrequently will speed up the pixel accretion, but may
+cause suboptimal choices of pixels being accreted into bins.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">tess.pixel_accretion</span></tt> Module</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../../_sources/tess/api/pixel_accretion.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 31 Jul 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

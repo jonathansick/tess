@@ -333,7 +333,7 @@ class EqualSNAccretor(PixelAccretor):
         else:
             xy = np.array([idx[1], idx[0]])
             # print self._bin_centroid, xy
-            return float(np.sqrt(np.sum((xy - self._bin_centroid) ** 2.)))
+            return float(np.sum((xy - self._bin_centroid) ** 2.))
 
     def accept_pixel(self, idx):
         """Test a pixel, return ``True`` if it should be added to the bin.
@@ -362,5 +362,6 @@ class EqualSNAccretor(PixelAccretor):
 
     def close_bin(self):
         """Called when the current bin is completed."""
+        print "Final S/N", self._bin_sn
         self._bin_centroid = None
         self._bin_sn = None

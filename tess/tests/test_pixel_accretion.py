@@ -4,6 +4,7 @@
 Tests for the pixel_accretion module
 """
 import numpy as np
+from astropy.io import fits
 
 from tess.pixel_accretion import IsoIntensityAccretor
 from tess.pixel_accretion import EqualSNAccretor
@@ -33,6 +34,6 @@ def test_iso_sn_image():
     noise = np.ones((64, 64), dtype=float)
     accretor = EqualSNAccretor(img, noise, 20.)
     accretor.accrete((0, 0))
-    print accretor._seg_image
+    fits.writeto("iso_sn.fits", accretor._seg_image, clobber=True)
     # Should be about 1024 groups.
     assert accretor._seg_image.max() <= 1050.

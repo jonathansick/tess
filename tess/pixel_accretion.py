@@ -219,7 +219,6 @@ class IsoIntensityAccretor(PixelAccretor):
         idx : tuple
             The pixel index to be tested.
         """
-        print "_bin_mean_intensity", self._bin_mean_intensity
         if self._bin_mean_intensity is None:
             print "self.current_bin_indices", self.current_bin_indices
             return 0.

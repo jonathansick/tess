@@ -385,10 +385,15 @@ class EqualSNAccretor(PixelAccretor):
         print "n_failed", len(failed_bins)
         # build a kdtree of good bins
         tree = kdtree.KDTree(self._bin_centroids[good_bins, :])
-        dists, reassignment_indices = tree.query(
-            self._bin_centroids[failed_bins, :])
-        print len(reassignment_indices)
+        # dists, reassignment_indices = tree.query(
+        #     self._bin_centroids[failed_bins, :])
+        # print len(reassignment_indices)
         for i, failed_idx in enumerate(failed_bins):
             # update the segmentation image
             pix_idx = np.where(self._seg_image == failed_idx)
-            self._seg_image[pix_idx] = reassignment_indices[i]
+            coords = np.vstack(pix_idx).T
+            dists, reassignment_indices = tree.query(coords)
+            self._seg_image[pix_idx] = good_bins[reassignment_indices]
+            # for pix in pix_idx:
+            #     print pix
+            # self._seg_image[pix_idx] = reassignment_indices[i]

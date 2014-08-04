@@ -70,8 +70,8 @@ class PixelAccretor(object):
                 self.pixel_added()  # call to subclass
             else:
                 # Reject pixel and stop accretion
-                self.close_bin()  # call to subclass
                 break
+        self.close_bin()  # call to subclass
         # Add remaining edges to the global edge list
         leftovers = set(self.current_edge_dict.keys())
         # Remove accreted points from global edges

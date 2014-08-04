@@ -163,6 +163,11 @@ class PixelAccretor(object):
             return None
         return ij_next
 
+    @property
+    def segimage(self):
+        """The segmentation map, where pixels are labeled by bin number."""
+        return self._seg_image
+
 
 class IsoIntensityAccretor(PixelAccretor):
     """Bin pixels to make iso-intensity regions.

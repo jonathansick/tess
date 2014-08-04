@@ -312,7 +312,7 @@ class EqualSNAccretor(PixelAccretor):
         self._bin_sn = signal / np.sqrt(var)
         x0 = np.mean([idx[1] for idx in self.current_bin_indices])
         y0 = np.mean([idx[0] for idx in self.current_bin_indices])
-        self._bin_centroid = np.array([x0, y0])
+        self._bin_centroid = np.array([y0, x0])
 
     def bin_started(self):
         """Called by :class`PixelAccretor` baseclass when a new bin has been
@@ -336,9 +336,10 @@ class EqualSNAccretor(PixelAccretor):
         if self._bin_centroid is None:
             return 0.
         else:
-            xy = np.array([idx[1], idx[0]])
+            # yx = np.array([idx[0], idx[1]])
             # print self._bin_centroid, xy
-            return float(np.sum((xy - self._bin_centroid) ** 2.))
+            # return float(np.sum((yx - self._bin_centroid) ** 2.))
+            return float(np.sum((idx - self._bin_centroid) ** 2.))
 
     def accept_pixel(self, idx):
         """Test a pixel, return ``True`` if it should be added to the bin.
@@ -391,7 +392,7 @@ class EqualSNAccretor(PixelAccretor):
         for i, failed_idx in enumerate(failed_bins):
             # update the segmentation image
             pix_idx = np.where(self._seg_image == failed_idx)
-            self._seg_image[pix_idx] = -1
-            # coords = np.vstack(pix_idx).T
-            # dists, reassignment_indices = tree.query(coords)
-            # self._seg_image[pix_idx] = good_bins[reassignment_indices]
+            # self._seg_image[pix_idx] = -1
+            coords = np.vstack(pix_idx).T
+            dists, reassignment_indices = tree.query(coords)
+            self._seg_image[pix_idx] = good_bins[reassignment_indices]

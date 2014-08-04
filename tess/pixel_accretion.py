@@ -3,6 +3,9 @@
 """
 Pixel accretion methods for segmenting images.
 """
+
+# import scipy.spatial.cKDTree as KDTree
+import scipy.spatial.kdtree as kdtree
 from heapq import heappop, heapify, heappush
 
 import numpy as np
@@ -297,6 +300,8 @@ class EqualSNAccretor(PixelAccretor):
         self.max_pixels = max_pixels
         self._bin_sn = None
         self._bin_centroid = None
+        self._bin_centroids = []
+        self._valid_bins = []  # array for each bin; True if S/N is met.
 
     def _update_bin(self):
         """Compute the current S/N of the bin."""
@@ -314,6 +319,7 @@ class EqualSNAccretor(PixelAccretor):
         started (and a seed pixel has been added)."""
         # print "bin_started"
         self._update_bin()
+        self._valid_bins.append(False)  # start off False
 
     def candidate_quality(self, idx):
         """Gives the scalar quality of adding this pixel with respect to the
@@ -362,5 +368,27 @@ class EqualSNAccretor(PixelAccretor):
     def close_bin(self):
         """Called when the current bin is completed."""
         print "Final S/N", self._bin_sn
+        if self._bin_sn >= self.target_sn:
+            self._valid_bins[-1] = True
+        self._bin_centroids.append(self._bin_centroid)
         self._bin_centroid = None
         self._bin_sn = None
+
+    def cleanup(self):
+        """Call after accretion; merges failed bins into neighbours"""
+        self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
+        self._bin_centroids = np.array(self._bin_centroids)
+        print "centroids shape", self._bin_centroids.shape
+        good_bins = np.where(self._valid_bins == True)[0]  # NOQA
+        print "n_good", len(good_bins)
+        failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
+        print "n_failed", len(failed_bins)
+        # build a kdtree of good bins
+        tree = kdtree.KDTree(self._bin_centroids[good_bins, :])
+        dists, reassignment_indices = tree.query(
+            self._bin_centroids[failed_bins, :])
+        print len(reassignment_indices)
+        for i, failed_idx in enumerate(failed_bins):
+            # update the segmentation image
+            pix_idx = np.where(self._seg_image == failed_idx)
+            self._seg_image[pix_idx] = reassignment_indices[i]

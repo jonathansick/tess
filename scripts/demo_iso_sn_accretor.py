@@ -17,6 +17,7 @@ def main():
     noise = np.ones((64, 64), dtype=float)
     accretor = EqualSNAccretor(img, noise, 20.)
     accretor.accrete((0, 0))
+    accretor.cleanup()
     fits.writeto("iso_sn.fits", accretor._seg_image, clobber=True)
 
 

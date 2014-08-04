@@ -391,9 +391,7 @@ class EqualSNAccretor(PixelAccretor):
         for i, failed_idx in enumerate(failed_bins):
             # update the segmentation image
             pix_idx = np.where(self._seg_image == failed_idx)
-            coords = np.vstack(pix_idx).T
-            dists, reassignment_indices = tree.query(coords)
-            self._seg_image[pix_idx] = good_bins[reassignment_indices]
-            # for pix in pix_idx:
-            #     print pix
-            # self._seg_image[pix_idx] = reassignment_indices[i]
+            self._seg_image[pix_idx] = -1
+            # coords = np.vstack(pix_idx).T
+            # dists, reassignment_indices = tree.query(coords)
+            # self._seg_image[pix_idx] = good_bins[reassignment_indices]

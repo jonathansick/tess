@@ -168,6 +168,26 @@ class PixelAccretor(object):
         """The segmentation map, where pixels are labeled by bin number."""
         return self._seg_image
 
+    @property
+    def centroids(self):
+        """Bin centroids, as ``(bin_num, (x,y))`` pixel coordinate tuples."""
+        # In this baseclass we compute centroids from first principles;
+        # subclasses can opt to use their own cache or their own weighting
+        # scheme instead.
+        max_bin = self._seg_image.max()
+        centroids = []
+        for bin_num in xrange(max_bin):
+            pixels = np.where(self._seg_image == bin_num)
+            print "bin", bin_num
+            print len(pixels), len(pixels[0])
+            npix = len(pixels[0])
+            if npix == 0:
+                continue
+            cx = np.mean([pixels[1][i] for i in xrange(npix)])
+            cy = np.mean([pixels[0][i] for i in xrange(npix)])
+            centroids.append((bin_num, (cx, cy)))
+        return centroids
+
 
 class IsoIntensityAccretor(PixelAccretor):
     """Bin pixels to make iso-intensity regions.

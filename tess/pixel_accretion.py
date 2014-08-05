@@ -27,7 +27,12 @@ class PixelAccretor(object):
     - ``pixel_added``, called when a pixel is accepted.
     - ``close_bin``, called when a bin is completed.
 
-    See :class:`tess.pixel_accretion.IsoIntensityAccrector` for an example.
+    Subclasses can also optinally provide a ``centroid_weightmap`` attribute
+    that should be the same shape as the image, but with weights for computing
+    centroids of pixel bins.
+
+    See :class:`tess.pixel_accretion.IsoIntensityAccretor`
+    and :class:`tess.pixel_accretion.EqualSNAccretor` for examples.
     """
     def __init__(self):
         super(PixelAccretor, self).__init__()
@@ -176,6 +181,10 @@ class PixelAccretor(object):
         # scheme instead.
         max_bin = self._seg_image.max()
         centroids = []
+        if hasattr(self, 'centroid_weightmap'):
+            weights = self.centroid_weightmap
+        else:
+            weights = np.ones(self._seg_image.shape, dtype=np.float)
         for bin_num in xrange(max_bin):
             pixels = np.where(self._seg_image == bin_num)
             print "bin", bin_num
@@ -183,8 +192,10 @@ class PixelAccretor(object):
             npix = len(pixels[0])
             if npix == 0:
                 continue
-            cx = np.mean([pixels[1][i] for i in xrange(npix)])
-            cy = np.mean([pixels[0][i] for i in xrange(npix)])
+            w = weights[pixels]
+            print "w.shape", w.shape
+            cx = np.average([pixels[1][i] for i in xrange(npix)], weights=w)
+            cy = np.average([pixels[0][i] for i in xrange(npix)], weights=w)
             centroids.append((bin_num, (cx, cy)))
         return centroids
 
@@ -318,6 +329,7 @@ class EqualSNAccretor(PixelAccretor):
         super(EqualSNAccretor, self).__init__()
         self.image = image
         self.noise = noise_image
+        self.centroid_weightmap = (self.image / self.noise) ** 2.
         assert self.image.shape[0] == self.noise.shape[0]
         assert self.image.shape[1] == self.noise.shape[1]
         self.target_sn = target_sn

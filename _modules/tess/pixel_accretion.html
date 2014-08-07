@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>tess.pixel_accretion &mdash; Tess v0.0.dev76</title>
+    <title>tess.pixel_accretion &mdash; tess v0.0.dev99</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev76',
+        VERSION:     '0.0.dev99',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,11 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="Tess v0.0.dev76" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev99" href="../../index.html" />
     <link rel="up" title="Module code" href="../index.html" />
 <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
 
   </head>
   <body>
@@ -54,7 +56,7 @@
     <h3>Navigation</h3>
     <ul>
       <li>
-	<a href="../../index.html">Tess v0.0.dev76</a>
+	<a href="../../index.html">tess v0.0.dev99</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li>
@@ -75,6 +77,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Pixel accretion methods for segmenting images.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># import scipy.spatial.cKDTree as KDTree</span>
+<span class="kn">import</span> <span class="nn">scipy.spatial.kdtree</span> <span class="kn">as</span> <span class="nn">kdtree</span>
 <span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">heappop</span><span class="p">,</span> <span class="n">heapify</span><span class="p">,</span> <span class="n">heappush</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -86,7 +91,7 @@
 <span class="sd">    Unlike the point accretion algorithms in :mod:`tess.point_accretion`,</span>
 <span class="sd">    these pixel accretion tools uses the grid geometry of images and only</span>
 <span class="sd">    accrete pixels are connected neighbours.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Users are expected to build or use a subclass of :class:`PixelAccretor`</span>
 <span class="sd">    that need to implement the following methods</span>
 
@@ -96,14 +101,19 @@
 <span class="sd">    - ``pixel_added``, called when a pixel is accepted.</span>
 <span class="sd">    - ``close_bin``, called when a bin is completed.</span>
 
-<span class="sd">    See :class:`tess.pixel_accretion.IsoIntensityAccrector` for an example.</span>
+<span class="sd">    Subclasses can also optinally provide a ``centroid_weightmap`` attribute</span>
+<span class="sd">    that should be the same shape as the image, but with weights for computing</span>
+<span class="sd">    centroids of pixel bins.</span>
+
+<span class="sd">    See :class:`tess.pixel_accretion.IsoIntensityAccretor`</span>
+<span class="sd">    and :class:`tess.pixel_accretion.EqualSNAccretor` for examples.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PixelAccretor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PixelAccretor.accrete"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.PixelAccretor.accrete">[docs]</a>    <span class="k">def</span> <span class="nf">accrete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ij0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run the pixel accretion algorithm, starting with pixel ij0.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        idx : tuple</span>
@@ -139,8 +149,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">pixel_added</span><span class="p">()</span>  <span class="c"># call to subclass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># Reject pixel and stop accretion</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close_bin</span><span class="p">()</span>  <span class="c"># call to subclass</span>
                 <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_bin</span><span class="p">()</span>  <span class="c"># call to subclass</span>
         <span class="c"># Add remaining edges to the global edge list</span>
         <span class="n">leftovers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="c"># Remove accreted points from global edges</span>
@@ -154,7 +164,7 @@
         <span class="c"># Top neighbour</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nrows</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
                 <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -167,7 +177,7 @@
         <span class="c"># Bottom neighbour</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
                 <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -180,7 +190,7 @@
         <span class="c"># Right neighbour</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncols</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
                 <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -193,7 +203,7 @@
         <span class="c"># Left neighbour</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">ij0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ij0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">:</span>
                 <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_quality</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>  <span class="c"># call to subclass</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_edge_dict</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
@@ -222,7 +232,7 @@
 </div>
     <span class="k">def</span> <span class="nf">_new_start_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Suggest a new starting pixel for next bin.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This pixel comes from the pool of edge pixels.</span>
 <span class="sd">        Returns ``None`` if no edge pixels are available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -232,6 +242,68 @@
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">ij_next</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">segimage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The segmentation map, where pixels are labeled by bin number.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">centroids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bin centroids, as ``bin_nums, (x,y)`` pixel coordinate tuples.&quot;&quot;&quot;</span>
+        <span class="c"># In this baseclass we compute centroids from first principles;</span>
+        <span class="c"># subclasses can opt to use their own cache or their own weighting</span>
+        <span class="c"># scheme instead.</span>
+        <span class="n">max_bin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">bin_nums</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">centroids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;centroid_weightmap&#39;</span><span class="p">):</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroid_weightmap</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bin_num</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">max_bin</span><span class="p">):</span>
+            <span class="n">pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span> <span class="o">==</span> <span class="n">bin_num</span><span class="p">)</span>
+            <span class="n">npix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">npix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">pixels</span><span class="p">]</span>
+            <span class="n">cx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">pixels</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">npix</span><span class="p">)],</span> <span class="n">weights</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+            <span class="n">cy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">npix</span><span class="p">)],</span> <span class="n">weights</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+            <span class="n">bin_nums</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bin_num</span><span class="p">)</span>
+            <span class="n">centroids</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">))</span>
+        <span class="n">bin_nums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bin_nums</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">centroids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">centroids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">centroids</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bin_nums</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bin numbers in the segmentation map; corresponds to order of</span>
+<span class="sd">        the ``centroids`` attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_nums</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">bin_nums</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">max_bin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">bin_nums</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">centroids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;centroid_weightmap&#39;</span><span class="p">):</span>
+                <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroid_weightmap</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">bin_num</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">max_bin</span><span class="p">):</span>
+                <span class="n">pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span> <span class="o">==</span> <span class="n">bin_num</span><span class="p">)</span>
+                <span class="n">npix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">npix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">pixels</span><span class="p">]</span>
+                <span class="n">cx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">pixels</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">npix</span><span class="p">)],</span> <span class="n">weights</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+                <span class="n">cy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">npix</span><span class="p">)],</span> <span class="n">weights</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+                <span class="n">bin_nums</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bin_num</span><span class="p">)</span>
+                <span class="n">centroids</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">))</span>
+            <span class="n">bin_nums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bin_nums</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bin_nums</span> <span class="o">=</span> <span class="n">bin_nums</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_nums</span>
+
 </div>
 <div class="viewcode-block" id="IsoIntensityAccretor"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor">[docs]</a><span class="k">class</span> <span class="nc">IsoIntensityAccretor</span><span class="p">(</span><span class="n">PixelAccretor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Bin pixels to make iso-intensity regions.</span>
@@ -239,7 +311,7 @@
 <span class="sd">    Each region in the image will have a standard deviation of pixel</span>
 <span class="sd">    intensities within a user-defined limit. This can be thought of as</span>
 <span class="sd">    a way of building non-parameteric isophotal regions.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    image : ndarray</span>
@@ -257,7 +329,7 @@
 <span class="sd">        heap is updated.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">intensity_sigma_limit</span><span class="p">,</span>
-            <span class="n">min_pixels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_pixels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_shift_frac</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+                 <span class="n">min_pixels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_pixels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_shift_frac</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">IsoIntensityAccretor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intensity_sigma_limit</span> <span class="o">=</span> <span class="n">intensity_sigma_limit</span>
@@ -269,7 +341,7 @@
     <span class="k">def</span> <span class="nf">_update_bin_mean_intensity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute self._bin_mean_intensity.&quot;&quot;&quot;</span>
         <span class="n">mu</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span> \
-                <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">))</span>
+            <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="n">mu</span>
 
 <div class="viewcode-block" id="IsoIntensityAccretor.bin_started"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.bin_started">[docs]</a>    <span class="k">def</span> <span class="nf">bin_started</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -285,17 +357,20 @@
 <span class="sd">        current bin. Pixels with the smallest &#39;quality&#39; value are accreted.</span>
 <span class="sd">        Here quality is defined as absolute difference of the pixel&#39;s intensity</span>
 <span class="sd">        and the mean intensity of the existing bin.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        idx : tuple</span>
 <span class="sd">            The pixel index to be tested.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="IsoIntensityAccretor.accept_pixel"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.accept_pixel">[docs]</a>    <span class="k">def</span> <span class="nf">accept_pixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Test a pixel, return ``True`` if it should be added to the bin.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        idx : tuple</span>
@@ -307,7 +382,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span> <span class="ow">and</span> <span class="n">npix</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="n">intensities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span> <span class="o">+</span> <span class="p">[</span><span class="n">idx</span><span class="p">]])</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span> <span class="o">+</span> <span class="p">[</span><span class="n">idx</span><span class="p">]])</span>
         <span class="k">if</span> <span class="n">intensities</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity_sigma_limit</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -316,8 +391,9 @@
 <div class="viewcode-block" id="IsoIntensityAccretor.pixel_added"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.pixel_added">[docs]</a>    <span class="k">def</span> <span class="nf">pixel_added</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called once a pixel has been added.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_bin_mean_intensity</span><span class="p">()</span>
-        <span class="n">frac_diff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span> \
-            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span>
+        <span class="n">frac_diff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span>
+                     <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span><span class="p">)</span> \
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_bin_mean_intensity</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">frac_diff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_shift_frac</span><span class="p">:</span>
             <span class="c"># Update the edge heap if the mean has shifted by more than 5%.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_edge_heap</span><span class="p">()</span>
@@ -326,7 +402,145 @@
 </div>
 <div class="viewcode-block" id="IsoIntensityAccretor.close_bin"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.IsoIntensityAccretor.close_bin">[docs]</a>    <span class="k">def</span> <span class="nf">close_bin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called when the current bin is completed.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">None</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_mean_intensity</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div></div>
+<div class="viewcode-block" id="EqualSNAccretor"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor">[docs]</a><span class="k">class</span> <span class="nc">EqualSNAccretor</span><span class="p">(</span><span class="n">PixelAccretor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bin pixels to make iso-signal-to-noise regions.</span>
+
+<span class="sd">    Each region will have roughly equal S/N ratio. Thus high S/N regions</span>
+<span class="sd">    will have high resolution, while low S/N regions will tend to be larger.</span>
+<span class="sd">    This creates optimally sized spatial bins for homogenous quality</span>
+<span class="sd">    samples.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : ndarray</span>
+<span class="sd">        The image to be segmented.</span>
+<span class="sd">    noise_image : ndarray</span>
+<span class="sd">        Noise image, in uniques of standard deviations. The noise image</span>
+<span class="sd">        must match the shape of ``image``.</span>
+<span class="sd">    target_sn : float</span>
+<span class="sd">        Target S/N ratio for each bin.</span>
+<span class="sd">    min_pixels : int</span>
+<span class="sd">        Minimum number of pixels that need to be in a single bin.</span>
+<span class="sd">    max_pixels : int</span>
+<span class="sd">        Maximum number of pixels that can be accreted into a single bin.</span>
+<span class="sd">        If ``None``, then no limit is enforced.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">noise_image</span><span class="p">,</span> <span class="n">target_sn</span><span class="p">,</span>
+                 <span class="n">min_pixels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_pixels</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EqualSNAccretor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">noise_image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centroid_weightmap</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_sn</span> <span class="o">=</span> <span class="n">target_sn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_pixels</span> <span class="o">=</span> <span class="n">min_pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span> <span class="o">=</span> <span class="n">max_pixels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_sn</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># array for each bin; True if S/N is met.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_update_bin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the current S/N of the bin.&quot;&quot;&quot;</span>
+        <span class="n">signal</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.</span>
+                   <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_sn</span> <span class="o">=</span> <span class="n">signal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">x0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="EqualSNAccretor.bin_started"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.bin_started">[docs]</a>    <span class="k">def</span> <span class="nf">bin_started</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called by :class`PixelAccretor` baseclass when a new bin has been</span>
+<span class="sd">        started (and a seed pixel has been added).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_bin</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># start off False</span>
+</div>
+<div class="viewcode-block" id="EqualSNAccretor.candidate_quality"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.candidate_quality">[docs]</a>    <span class="k">def</span> <span class="nf">candidate_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gives the scalar quality of adding this pixel with respect to the</span>
+<span class="sd">        current bin. Pixels with the smallest &#39;quality&#39; value are accreted.</span>
+<span class="sd">        Here quality is defined as distance of candidate pixel from bin</span>
+<span class="sd">        centroid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : tuple</span>
+<span class="sd">            The pixel index to be tested.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">idx</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="EqualSNAccretor.accept_pixel"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.accept_pixel">[docs]</a>    <span class="k">def</span> <span class="nf">accept_pixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test a pixel, return ``True`` if it should be added to the bin.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : tuple</span>
+<span class="sd">            The pixel index to be tested..</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">npix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_bin_indices</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">npix</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_pixels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_sn</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_sn</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span> <span class="ow">and</span> <span class="n">npix</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_pixels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="EqualSNAccretor.pixel_added"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.pixel_added">[docs]</a>    <span class="k">def</span> <span class="nf">pixel_added</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called once a pixel has been added.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_bin</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_edge_heap</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="EqualSNAccretor.close_bin"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.close_bin">[docs]</a>    <span class="k">def</span> <span class="nf">close_bin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when the current bin is completed.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_sn</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_sn</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_sn</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="EqualSNAccretor.cleanup"><a class="viewcode-back" href="../../tess/api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call after accretion; merges failed bins into neighbours&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroids</span><span class="p">)</span>
+        <span class="n">good_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span> <span class="o">==</span> <span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># NOQA</span>
+        <span class="n">failed_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_valid_bins</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># NOQA</span>
+        <span class="c"># build a kdtree of good bins</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_bin_centroids</span><span class="p">[</span><span class="n">good_bins</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">failed_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">failed_bins</span><span class="p">):</span>
+            <span class="c"># update the segmentation image</span>
+            <span class="n">pix_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span> <span class="o">==</span> <span class="n">failed_idx</span><span class="p">)</span>
+            <span class="c"># self._seg_image[pix_idx] = -1</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">pix_idx</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">dists</span><span class="p">,</span> <span class="n">reassignment_indices</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="p">[</span><span class="n">pix_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">good_bins</span><span class="p">[</span><span class="n">reassignment_indices</span><span class="p">]</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bin_sn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;S/N of each bin.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">max_bin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">bin_num</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">max_bin</span><span class="p">):</span>
+                <span class="n">pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seg_image</span> <span class="o">==</span> <span class="n">bin_num</span><span class="p">)</span>
+                <span class="n">npix</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pixels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">npix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="c"># compute S/N of pixels</span>
+                <span class="n">sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">[</span><span class="n">pixels</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span> \
+                    <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">[</span><span class="n">pixels</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bin_sn</span></div>
 </pre></div>
 
           </div>
@@ -346,7 +560,7 @@
   <p>
     &copy; Copyright 2014, Jonathan Sick.<br/>
     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
-    Last built 31 Jul 2014. <br/>
+    Last built 07 Aug 2014. <br/>
   </p>
 </footer>
   </body>

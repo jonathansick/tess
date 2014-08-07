@@ -175,11 +175,12 @@ class PixelAccretor(object):
 
     @property
     def centroids(self):
-        """Bin centroids, as ``(bin_num, (x,y))`` pixel coordinate tuples."""
+        """Bin centroids, as ``bin_nums, (x,y)`` pixel coordinate tuples."""
         # In this baseclass we compute centroids from first principles;
         # subclasses can opt to use their own cache or their own weighting
         # scheme instead.
         max_bin = self._seg_image.max()
+        bin_nums = []
         centroids = []
         if hasattr(self, 'centroid_weightmap'):
             weights = self.centroid_weightmap
@@ -196,8 +197,44 @@ class PixelAccretor(object):
             print "w.shape", w.shape
             cx = np.average([pixels[1][i] for i in xrange(npix)], weights=w)
             cy = np.average([pixels[0][i] for i in xrange(npix)], weights=w)
-            centroids.append((bin_num, (cx, cy)))
+            bin_nums.append(bin_num)
+            centroids.append((cx, cy))
+        bin_nums = np.array(bin_nums, dtype=int)
+        centroids = np.array(centroids)
         return centroids
+
+    @property
+    def bin_nums(self):
+        """Bin numbers in the segmentation map; corresponds to order of
+        the ``centroids`` attribute.
+        """
+        if self._bin_nums is None:
+            bin_nums = []
+            max_bin = self._seg_image.max()
+            bin_nums = []
+            centroids = []
+            if hasattr(self, 'centroid_weightmap'):
+                weights = self.centroid_weightmap
+            else:
+                weights = np.ones(self._seg_image.shape, dtype=np.float)
+            for bin_num in xrange(max_bin):
+                pixels = np.where(self._seg_image == bin_num)
+                print "bin", bin_num
+                print len(pixels), len(pixels[0])
+                npix = len(pixels[0])
+                if npix == 0:
+                    continue
+                w = weights[pixels]
+                print "w.shape", w.shape
+                cx = np.average([pixels[1][i]
+                                 for i in xrange(npix)], weights=w)
+                cy = np.average([pixels[0][i]
+                                 for i in xrange(npix)], weights=w)
+                bin_nums.append(bin_num)
+                centroids.append((cx, cy))
+            bin_nums = np.array(bin_nums, dtype=int)
+            self._bin_nums = bin_nums
+        return self._bin_nums
 
 
 class IsoIntensityAccretor(PixelAccretor):

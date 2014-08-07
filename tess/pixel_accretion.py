@@ -188,13 +188,10 @@ class PixelAccretor(object):
             weights = np.ones(self._seg_image.shape, dtype=np.float)
         for bin_num in xrange(max_bin):
             pixels = np.where(self._seg_image == bin_num)
-            print "bin", bin_num
-            print len(pixels), len(pixels[0])
             npix = len(pixels[0])
             if npix == 0:
                 continue
             w = weights[pixels]
-            print "w.shape", w.shape
             cx = np.average([pixels[1][i] for i in xrange(npix)], weights=w)
             cy = np.average([pixels[0][i] for i in xrange(npix)], weights=w)
             bin_nums.append(bin_num)
@@ -219,13 +216,10 @@ class PixelAccretor(object):
                 weights = np.ones(self._seg_image.shape, dtype=np.float)
             for bin_num in xrange(max_bin):
                 pixels = np.where(self._seg_image == bin_num)
-                print "bin", bin_num
-                print len(pixels), len(pixels[0])
                 npix = len(pixels[0])
                 if npix == 0:
                     continue
                 w = weights[pixels]
-                print "w.shape", w.shape
                 cx = np.average([pixels[1][i]
                                  for i in xrange(npix)], weights=w)
                 cy = np.average([pixels[0][i]
@@ -296,7 +290,6 @@ class IsoIntensityAccretor(PixelAccretor):
             The pixel index to be tested.
         """
         if self._bin_mean_intensity is None:
-            print "self.current_bin_indices", self.current_bin_indices
             return 0.
         else:
             return float(np.abs(self.image[idx] - self._bin_mean_intensity))
@@ -379,7 +372,6 @@ class EqualSNAccretor(PixelAccretor):
 
     def _update_bin(self):
         """Compute the current S/N of the bin."""
-        # print "_update_bin"
         signal = sum([self.image[idx] for idx in self.current_bin_indices])
         var = sum([self.noise[idx] ** 2.
                    for idx in self.current_bin_indices])
@@ -391,7 +383,6 @@ class EqualSNAccretor(PixelAccretor):
     def bin_started(self):
         """Called by :class`PixelAccretor` baseclass when a new bin has been
         started (and a seed pixel has been added)."""
-        # print "bin_started"
         self._update_bin()
         self._valid_bins.append(False)  # start off False
 
@@ -406,13 +397,9 @@ class EqualSNAccretor(PixelAccretor):
         idx : tuple
             The pixel index to be tested.
         """
-        # print "candidate_quality"
         if self._bin_centroid is None:
             return 0.
         else:
-            # yx = np.array([idx[0], idx[1]])
-            # print self._bin_centroid, xy
-            # return float(np.sum((yx - self._bin_centroid) ** 2.))
             return float(np.sum((idx - self._bin_centroid) ** 2.))
 
     def accept_pixel(self, idx):
@@ -424,7 +411,6 @@ class EqualSNAccretor(PixelAccretor):
             The pixel index to be tested..
         """
         npix = len(self.current_bin_indices)
-        print "accept_test", npix, self._bin_sn, self.target_sn
         if npix < self.min_pixels:
             return True
         if self._bin_sn > self.target_sn:
@@ -436,13 +422,11 @@ class EqualSNAccretor(PixelAccretor):
 
     def pixel_added(self):
         """Called once a pixel has been added."""
-        # print "pixel_added"
         self._update_bin()
         self.update_edge_heap()
 
     def close_bin(self):
         """Called when the current bin is completed."""
-        print "Final S/N", self._bin_sn
         if self._bin_sn >= self.target_sn:
             self._valid_bins[-1] = True
         self._bin_centroids.append(self._bin_centroid)
@@ -453,16 +437,10 @@ class EqualSNAccretor(PixelAccretor):
         """Call after accretion; merges failed bins into neighbours"""
         self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
         self._bin_centroids = np.array(self._bin_centroids)
-        print "centroids shape", self._bin_centroids.shape
         good_bins = np.where(self._valid_bins == True)[0]  # NOQA
-        print "n_good", len(good_bins)
         failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
-        print "n_failed", len(failed_bins)
         # build a kdtree of good bins
         tree = kdtree.KDTree(self._bin_centroids[good_bins, :])
-        # dists, reassignment_indices = tree.query(
-        #     self._bin_centroids[failed_bins, :])
-        # print len(reassignment_indices)
         for i, failed_idx in enumerate(failed_bins):
             # update the segmentation image
             pix_idx = np.where(self._seg_image == failed_idx)

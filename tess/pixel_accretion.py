@@ -365,20 +365,21 @@ class EqualSNAccretor(PixelAccretor):
         self.target_sn = target_sn
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels
-        self._bin_sn = None
-        self._bin_centroid = None
-        self._bin_centroids = []
+        self._current_bin_sn = None
+        self._current_bin_centroid = None
+        self._current_bin_centroids = []
         self._valid_bins = []  # array for each bin; True if S/N is met.
+        self._bin_sn = None
 
     def _update_bin(self):
         """Compute the current S/N of the bin."""
         signal = sum([self.image[idx] for idx in self.current_bin_indices])
         var = sum([self.noise[idx] ** 2.
                    for idx in self.current_bin_indices])
-        self._bin_sn = signal / np.sqrt(var)
+        self._current_bin_sn = signal / np.sqrt(var)
         x0 = np.mean([idx[1] for idx in self.current_bin_indices])
         y0 = np.mean([idx[0] for idx in self.current_bin_indices])
-        self._bin_centroid = np.array([y0, x0])
+        self._current_bin_centroid = np.array([y0, x0])
 
     def bin_started(self):
         """Called by :class`PixelAccretor` baseclass when a new bin has been
@@ -397,10 +398,10 @@ class EqualSNAccretor(PixelAccretor):
         idx : tuple
             The pixel index to be tested.
         """
-        if self._bin_centroid is None:
+        if self._current_bin_centroid is None:
             return 0.
         else:
-            return float(np.sum((idx - self._bin_centroid) ** 2.))
+            return float(np.sum((idx - self._current_bin_centroid) ** 2.))
 
     def accept_pixel(self, idx):
         """Test a pixel, return ``True`` if it should be added to the bin.
@@ -413,7 +414,7 @@ class EqualSNAccretor(PixelAccretor):
         npix = len(self.current_bin_indices)
         if npix < self.min_pixels:
             return True
-        if self._bin_sn > self.target_sn:
+        if self._current_bin_sn > self.target_sn:
             return False
         if self.max_pixels and npix > self.max_pixels:
             return False
@@ -427,20 +428,20 @@ class EqualSNAccretor(PixelAccretor):
 
     def close_bin(self):
         """Called when the current bin is completed."""
-        if self._bin_sn >= self.target_sn:
+        if self._current_bin_sn >= self.target_sn:
             self._valid_bins[-1] = True
-        self._bin_centroids.append(self._bin_centroid)
-        self._bin_centroid = None
-        self._bin_sn = None
+        self._current_bin_centroids.append(self._current_bin_centroid)
+        self._current_bin_centroid = None
+        self._current_bin_sn = None
 
     def cleanup(self):
         """Call after accretion; merges failed bins into neighbours"""
         self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
-        self._bin_centroids = np.array(self._bin_centroids)
+        self._current_bin_centroids = np.array(self._current_bin_centroids)
         good_bins = np.where(self._valid_bins == True)[0]  # NOQA
         failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
         # build a kdtree of good bins
-        tree = kdtree.KDTree(self._bin_centroids[good_bins, :])
+        tree = kdtree.KDTree(self._current_bin_centroids[good_bins, :])
         for i, failed_idx in enumerate(failed_bins):
             # update the segmentation image
             pix_idx = np.where(self._seg_image == failed_idx)
@@ -448,3 +449,21 @@ class EqualSNAccretor(PixelAccretor):
             coords = np.vstack(pix_idx).T
             dists, reassignment_indices = tree.query(coords)
             self._seg_image[pix_idx] = good_bins[reassignment_indices]
+
+    @property
+    def bin_sn(self):
+        """S/N of each bin."""
+        if self._bin_sn is None:
+            self._bin_sn = []
+            max_bin = self._seg_image.max()
+            for bin_num in xrange(max_bin):
+                pixels = np.where(self._seg_image == bin_num)
+                npix = len(pixels[0])
+                if npix == 0:
+                    continue
+                # compute S/N of pixels
+                sn = np.sum(self.image[pixels].flatten()) \
+                    / np.sqrt(np.sum(self.noise[pixels] ** 2.))
+                self._bin_sn.append(sn)
+            self._bin_sn = np.array(self._bin_sn)
+        return self._bin_sn

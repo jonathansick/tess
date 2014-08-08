@@ -34,11 +34,40 @@ class CVTessellation(VoronoiTessellation):
         an array of generators accordinate to target mass or S/N.
     """
     def __init__(self, x_points, y_points, dens_points, node_xy=None):
-        x_node, y_node, v_bin_num = self._tessellate(x_points, y_points,
-                                                     dens_points,
-                                                     node_xy=node_xy)
+        x_node, y_node, vbin_num = self._tessellate(x_points, y_points,
+                                                    dens_points,
+                                                    node_xy=node_xy)
         super(CVTessellation, self).__init__(x_node, y_node)
-        self.vBinNum = v_bin_num
+        self._vbin_num = vbin_num
+
+    @classmethod
+    def from_image(cls, density, generators):
+        """Convenience constructor for centroidal Voronoi tessellations
+        of pixel data sets.
+
+        The (x, y) point coordinates are automatically set to be the 0-based
+        pixel indices. :meth:`CVTessellation.set_pixel_grid` is automatically
+        called to set the pixel grid to the match the image dimensions.
+
+        Parameters
+        ----------
+        density : ndarray
+            A 2D image with the density. The CVT partitions the density
+            map so each cell has approximately equal mass.
+        generators : ndarray
+            A ``(n_nodes, 2)`` array of point coordinates with initial
+            starting points for each Voronoi cell.
+            Note that coordinates are (x, y), which is the reverse of (y, x)
+            image indices.
+        """
+        x, y = np.meshgrid(np.arange(density.shape[1], dtype=float),
+                           np.arange(density.shape[0], dtype=float))
+        instance = cls(x.flatten(),
+                       y.flatten(),
+                       density.flatten(),
+                       node_xy=generators)
+        instance.set_pixel_grid((0, density.shape[1]), (0, density.shape[0]))
+        return instance
 
     def _tessellate(self, xPoints, yPoints, densPoints, node_xy=None):
         """Computes the centroidal voronoi tessellation itself."""
@@ -134,7 +163,7 @@ class CVTessellation(VoronoiTessellation):
             indices into the node arrays of
             :meth:`tess.CVTessellation.get_nodes()`.
         """
-        return self.vBinNum
+        return self._vbin_num
 
     def get_node_weights(self):
         """Weight of each Voronoi bin.
@@ -147,7 +176,7 @@ class CVTessellation(VoronoiTessellation):
         nNodes = len(self.xNode)
         nodeWeights = np.zeros(nNodes, dtype=np.float)
         for i in xrange(nNodes):
-            ind = np.where(self.vBinNum == i)[0]
+            ind = np.where(self._vbin_num == i)[0]
             if len(ind) > 0:
                 nodeWeights[i] = np.sum(self.densPoints[ind])
         return nodeWeights

@@ -12,7 +12,7 @@ from scipy.spatial import KDTree
 
 class VoronoiTessellation(object):
     """A Voronoi Tessellation, defined by a set of nodes on a 2D plane.
-    
+
     Parameters
     ----------
     x : ndarray, (n_nodes, 1)
@@ -38,7 +38,7 @@ class VoronoiTessellation(object):
 
         - :meth:`make_segmap` and :meth:`save_segmap`
         - :meth:`compute_cell_areas`
-        
+
         Parameters
         ----------
         xlim : tuple
@@ -55,9 +55,9 @@ class VoronoiTessellation(object):
         """Convenience wrapper to :meth:`set_pixel_grid` if a FITS header is
         available. As a bonus, the FITS header will be used when saving
         any rendered fields to FITS.
-        
+
         .. note:: The header is available as the :attr:`header` attribute.
-        
+
         Parameters
         ----------
         header : :class:`astropy.io.fits.Header`
@@ -73,10 +73,10 @@ class VoronoiTessellation(object):
     def make_segmap(self):
         """Make a pixel segmentation map that paints the Voronoi bin number
         on Voronoi pixels.
-        
+
         The result is stored as the :attr:`segmap` attribute and returned to
         the caller.
-        
+
         Returns
         -------
         segmap : ndarray
@@ -108,10 +108,11 @@ class VoronoiTessellation(object):
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
         assert len(nodeValues) == len(self.xNode), "Not the same number of" \
-                " node values as nodes!"
+            " node values as nodes!"
 
         # Pixel grid to compute Voronoi field on
-        ygrid, xgrid = np.meshgrid(np.arange(self.ylim[0], self.ylim[1]),
+        ygrid, xgrid = np.meshgrid(
+            np.arange(self.ylim[0], self.ylim[1]),
             np.arange(self.xlim[0], self.xlim[1]))
 
         # Package xNode and yNode into Nx2 array
@@ -138,8 +139,9 @@ class VoronoiTessellation(object):
         if self.segmap is None:
             self.make_segmap()
         if self.header is not None:
-            astropy.io.fits.writeto(fitsPath, self.segmap, self.header,
-                    clobber=True)
+            astropy.io.fits.writeto(
+                fitsPath, self.segmap, self.header,
+                clobber=True)
         else:
             astropy.io.fits.writeto(fitsPath, self.segmap, clobber=True)
 
@@ -170,7 +172,7 @@ class VoronoiTessellation(object):
             stored as :attr:`cellAreas`.
         """
         assert self.segmap is not None, "Compute a segmentation map first"
-        
+
         if flagmap is not None:
             # If a flagmap is available, flagged pixels are set to NaN
             _segmap = self.segmap.copy()
@@ -183,7 +185,7 @@ class VoronoiTessellation(object):
 
     def get_nodes(self):
         """Returns the x and y positions of the Voronoi nodes.
-        
+
         Returns
         -------
         xNode : ndarray
@@ -196,7 +198,7 @@ class VoronoiTessellation(object):
     def partition_points(self, x, y):
         """Partition an arbitrary set of points, defined by `x` and `y`
         coordinates, onto the Voronoi tessellation.
-        
+
         This method uses :class:`scipy.spatial.cKDTree` to efficiently handle
         Voronoi assignment.
 
@@ -250,7 +252,7 @@ class VoronoiTessellation(object):
            areas have not been compute yet. The `flagmap` parameter can be
            passed to that method. If :attr:`cellAreas` is not `None`,
            then new cell areas will *not* be computed.
-        
+
         Parameters
         ----------
         x : ndarray
@@ -274,16 +276,16 @@ class VoronoiTessellation(object):
 
     def plot_nodes(self, plotPath):
         """Plots the points in each bin as a different colour
-        
+
         Parameters
         ----------
         plotPath : str
             Path where the plot will be saved.
         """
         from matplotlib.backends.backend_pdf \
-                import FigureCanvasPdf as FigureCanvas
+            import FigureCanvasPdf as FigureCanvas
         from matplotlib.figure import Figure
-        
+
         fig = Figure(figsize=(6, 4))
         canvas = FigureCanvas(fig)
         ax = fig.add_subplot(111)

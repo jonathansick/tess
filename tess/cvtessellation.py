@@ -19,11 +19,11 @@ class CVTessellation(VoronoiTessellation):
 
     Parameters
     ----------
-    xPoints : ndarray
+    x_points : ndarray
         Array of cartesian ``x`` locations of each data point.
-    yPoints : ndarray
+    y_points : ndarray
         Array of cartesian ``y`` locations of each data point.
-    densPoints : ndarray
+    dens_points : ndarray
         Density *or weight* of each point. For an equal-S/N generator, this
         should be set to :math:`(S/N)^2`. For an equal number generator this
         can be simple an array of ones.
@@ -33,18 +33,19 @@ class CVTessellation(VoronoiTessellation):
         :class:`tess.point_accretion.PointAccretion` and subclasses to build
         an array of generators accordinate to target mass or S/N.
     """
-    def __init__(self, xPoints, yPoints, densPoints, node_xy=None):
-        xNode, yNode, vBinNum = self._tessellate(xPoints, yPoints, densPoints,
-                node_xy=node_xy)
-        super(CVTessellation, self).__init__(xNode, yNode)
-        self.vBinNum = vBinNum
-    
+    def __init__(self, x_points, y_points, dens_points, node_xy=None):
+        x_node, y_node, v_bin_num = self._tessellate(x_points, y_points,
+                                                     dens_points,
+                                                     node_xy=node_xy)
+        super(CVTessellation, self).__init__(x_node, y_node)
+        self.vBinNum = v_bin_num
+
     def _tessellate(self, xPoints, yPoints, densPoints, node_xy=None):
         """Computes the centroidal voronoi tessellation itself."""
         self.densPoints = densPoints
-        
+
         # Obtain pre-generator node coordinates
-        if not node_xy is not None:
+        if node_xy is None:
             node_xy = np.column_stack((xPoints.copy(), yPoints.copy()))
 
         xy = np.column_stack((xPoints, yPoints))
@@ -55,30 +56,31 @@ class CVTessellation(VoronoiTessellation):
         """Run Lloyd's algorithm in pure-python."""
         nPoints = len(xPoints)
         nNodes = len(xNode)
-        
+
         # vBinNum holds the Voronoi bin numbers for each data point
         vBinNum = np.zeros(nPoints, dtype=np.uint32)
-        
+
         iters = 1
         while 1:
             xNodeOld = xNode.copy()
             yNodeOld = yNode.copy()
-            
+
             for j in xrange(nPoints):
                 # Assign each point to a node. A point is assigned to the
                 # node that it is closest to.
                 # Note: this now means the voronoi bin numbers start from zero
                 vBinNum[j] = np.argmin((xPoints[j] - xNode) ** 2.
-                        + (yPoints[j] - yNode) ** 2.)
-            
+                                       + (yPoints[j] - yNode) ** 2.)
+
             # Compute centroids of these Vorononi Bins. But now using a dens^2
             # weighting. The dens^2 weighting produces equal-mass Voronoi bins.
             # See Capellari and Copin (2003)
             for j in xrange(nNodes):
                 indices = np.where(vBinNum == j)[0]
                 if len(indices) != 0:
-                    xBar, yBar = self._weighted_centroid(xPoints[indices],
-                            yPoints[indices], densPoints[indices] ** 2.)
+                    xBar, yBar = self._weighted_centroid(
+                        xPoints[indices],
+                        yPoints[indices], densPoints[indices] ** 2.)
                 else:
                     # if the Voronoi bin is empty then give (0,0) as its
                     # centroid then we can catch these empty bins later
@@ -86,37 +88,45 @@ class CVTessellation(VoronoiTessellation):
                     yBar = 0.0
                 xNode[j] = xBar
                 yNode[j] = yBar
-            
+
             delta = np.sum((xNode - xNodeOld) ** 2.
-                    + (yNode - yNodeOld) ** 2.)
+                           + (yNode - yNodeOld) ** 2.)
             iters = iters + 1
-            
+
             print "CVT Iteration: %i, Delta %f" % (iters, delta)
-            
+
             if delta == 0.:
                 break
         print "CVT complete"
         return xNode, yNode, vBinNum
-    
+
     def _weighted_centroid(self, x, y, density):
         """
         Compute the density-weighted centroid of one bin. See Equation 4 of
         Cappellari & Copin (2003).
-        
-        :param x: array of x-axis spatial coordinates
-        :param y: array of y-axis spatial coordiantes
-        :param density: array containing the weighting values
-        
-        :return: tuple `(xBar, yBar)`, the weighted centroid
+
+        Parameters
+        ----------
+        x : ndarray
+            Array of x-axis spatial coordinates
+        y : ndarray
+            Array of y-axis spatial coordinates
+        density : ndarray
+            Array of weighting values
+
+        Returns
+        -------
+        centroid : tuple
+            Weighted centroid, ``(x, y)``.
         """
         mass = np.sum(density)
         xBar = np.sum(x * density) / mass
         yBar = np.sum(y * density) / mass
         return (xBar, yBar)
-    
+
     def get_node_membership(self):
         """Indices into voronoi bins for each point.
-        
+
         Returns
         -------
         vBinNum : ndarray
@@ -128,7 +138,7 @@ class CVTessellation(VoronoiTessellation):
 
     def get_node_weights(self):
         """Weight of each Voronoi bin.
-        
+
         Returns
         -------
         nodeWeights : ndarray

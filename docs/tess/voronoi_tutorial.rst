@@ -18,8 +18,7 @@ To seed the Voronoi tessellation we need to partition the pixels into bins that 
 This is done with the :mod:`tess.pixel_accretion` module::
 
    from tess.pixel_accretion import EqualSNAccretor
-   accretor = EqualSNAccretor(img, noise, 50.)
-   accretor.accrete((0, 0))
+   accretor = EqualSNAccretor(img, noise, 50., start=(0, 0))
    accretor.cleanup()
    generator_centroids = accretor.centroids
 

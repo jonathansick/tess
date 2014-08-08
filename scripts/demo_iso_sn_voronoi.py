@@ -25,8 +25,7 @@ def main():
                          (pix_y - 128.) ** 2. / (2. * 50. ** 2.)))
     # noise = 50. * np.sqrt(img)
     noise = np.ones(shape, dtype=float)
-    accretor = EqualSNAccretor(img, noise, 50.)
-    accretor.accrete((0, 0))
+    accretor = EqualSNAccretor(img, noise, 50., start=(0, 0))
     accretor.cleanup()
     print "accretor.bin_sn", accretor.bin_sn
     generator_centroids = accretor.centroids

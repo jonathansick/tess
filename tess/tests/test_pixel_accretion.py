@@ -22,7 +22,6 @@ def test_isointensity_blockimage():
     print "image"
     print img
     accretor = IsoIntensityAccretor(img, 0.1)
-    accretor.accrete((0, 0))
     print accretor._seg_image
     # Should only be 4 groups
     assert accretor._seg_image.max() == 3
@@ -33,7 +32,6 @@ def test_iso_sn_image():
     img = 5. * np.ones((64, 64), dtype=float)
     noise = np.ones((64, 64), dtype=float)
     accretor = EqualSNAccretor(img, noise, 20.)
-    accretor.accrete((0, 0))
     fits.writeto("iso_sn.fits", accretor._seg_image, clobber=True)
     # Should be about 1024 groups.
     assert accretor._seg_image.max() <= 1050.

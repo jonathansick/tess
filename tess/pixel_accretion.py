@@ -34,10 +34,11 @@ class PixelAccretor(object):
     See :class:`tess.pixel_accretion.IsoIntensityAccretor`
     and :class:`tess.pixel_accretion.EqualSNAccretor` for examples.
     """
-    def __init__(self):
+    def __init__(self, ij0=(0, 0)):
         super(PixelAccretor, self).__init__()
+        self._accrete(ij0)
 
-    def accrete(self, ij0):
+    def _accrete(self, ij0):
         """Run the pixel accretion algorithm, starting with pixel ij0.
 
         Parameters
@@ -253,16 +254,19 @@ class IsoIntensityAccretor(PixelAccretor):
     max_shift_frac : flaot
         Maximum fractional change of the bin's mean before the edge pixel
         heap is updated.
+    start : tuple
+        Pixel coordinate to begin accretion from.
     """
     def __init__(self, image, intensity_sigma_limit,
-                 min_pixels=1, max_pixels=None, max_shift_frac=0.05):
-        super(IsoIntensityAccretor, self).__init__()
+                 min_pixels=1, max_pixels=None, max_shift_frac=0.05,
+                 start=(0, 0)):
         self.image = image
         self.intensity_sigma_limit = intensity_sigma_limit
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels
         self._bin_mean_intensity = None
         self._max_shift_frac = max_shift_frac
+        super(IsoIntensityAccretor, self).__init__(ij0=start)
 
     def _update_bin_mean_intensity(self):
         """Compute self._bin_mean_intensity."""
@@ -353,10 +357,11 @@ class EqualSNAccretor(PixelAccretor):
     max_pixels : int
         Maximum number of pixels that can be accreted into a single bin.
         If ``None``, then no limit is enforced.
+    start : tuple
+        Pixel coordinate to begin accretion from.
     """
     def __init__(self, image, noise_image, target_sn,
-                 min_pixels=1, max_pixels=None):
-        super(EqualSNAccretor, self).__init__()
+                 min_pixels=1, max_pixels=None, start=(0, 0)):
         self.image = image
         self.noise = noise_image
         self.centroid_weightmap = (self.image / self.noise) ** 2.
@@ -370,6 +375,7 @@ class EqualSNAccretor(PixelAccretor):
         self._current_bin_centroids = []
         self._valid_bins = []  # array for each bin; True if S/N is met.
         self._bin_sn = None
+        super(EqualSNAccretor, self).__init__(ij0=start)
 
     def _update_bin(self):
         """Compute the current S/N of the bin."""

@@ -117,7 +117,6 @@ But we can use these generator centroids as seeds for a Centroidal Voronoi Tesse
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">tess.cvtessellation</span> <span class="kn">import</span> <span class="n">CVTessellation</span>
 <span class="n">cvt</span> <span class="o">=</span> <span class="n">CVTessellation</span><span class="o">.</span><span class="n">from_image</span><span class="p">(</span><span class="n">pix_sn</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">,</span> <span class="n">generator_centroids</span><span class="p">)</span>
 <span class="n">cvt_xy</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">nodes</span>
-<span class="k">print</span> <span class="s">&quot;N nodes&quot;</span><span class="p">,</span> <span class="n">cvt_xy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">segimage</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">segmap</span>
 </pre></div>
 </div>

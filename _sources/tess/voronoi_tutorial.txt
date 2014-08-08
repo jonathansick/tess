@@ -36,7 +36,6 @@ But we can use these generator centroids as seeds for a Centroidal Voronoi Tesse
    from tess.cvtessellation import CVTessellation
    cvt = CVTessellation.from_image(pix_sn ** 2., generator_centroids)
    cvt_xy = cvt.nodes
-   print "N nodes", cvt_xy.shape[0]
    segimage = cvt.segmap
 
 Plotting this segmentation image and the corresponding Voronoi nodes, we see

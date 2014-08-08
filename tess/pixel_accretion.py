@@ -170,7 +170,7 @@ class PixelAccretor(object):
         return ij_next
 
     @property
-    def segimage(self):
+    def segmap(self):
         """The segmentation map, where pixels are labeled by bin number."""
         return self._seg_image
 

@@ -30,7 +30,7 @@ def main():
     accretor.cleanup()
     generator_centroids = accretor.centroids
 
-    plot_segmap(accretor.segimage, generator_centroids, "iso_sn_accretion")
+    plot_segmap(accretor.segmap, generator_centroids, "iso_sn_accretion")
 
     # Make a centroidal Voronoi tessellation so that each cell has
     # approximately equal S/N

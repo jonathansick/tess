@@ -1,5 +1,5 @@
-Equal-S/N Pixel Binning with Voronoi Diagrams
-=============================================
+Equal-S/N Pixel Binning with Centroidal Voronoi Tessellation
+============================================================
 
 :mod:`tess` can be used to bin images into equal S/N regions.
 This procedure was popularized by `Cappellari & Copin 2003 <http://adsabs.harvard.edu/abs/2003MNRAS.342..345C>`_ in the context of SAURON IFS imaging.

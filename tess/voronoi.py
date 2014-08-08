@@ -24,7 +24,7 @@ class VoronoiTessellation(object):
         super(VoronoiTessellation, self).__init__()
         self.xNode = x  #: Array of node x-coordinates
         self.yNode = y  #: Array of node y-coordinates
-        self.segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
+        self._segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
         self.cellAreas = None  #: 1D array of Voronoi cell areas
         self.xlim = None  #: Length-2 array of min, max coords of x pixel grid
         self.ylim = None  #: Length-2 array of min, max coords of y pixel grid
@@ -51,12 +51,18 @@ class VoronoiTessellation(object):
         self.xlim = xlim
         self.ylim = ylim
 
+        # Reset dependencies
+        self._segmap = None
+        self.cellAreas = None
+
     def set_fits_grid(self, header):
         """Convenience wrapper to :meth:`set_pixel_grid` if a FITS header is
         available. As a bonus, the FITS header will be used when saving
         any rendered fields to FITS.
 
         .. note:: The header is available as the :attr:`header` attribute.
+
+        .. todo:: Should be removed
 
         Parameters
         ----------
@@ -70,22 +76,13 @@ class VoronoiTessellation(object):
         self.set_pixel_grid(xlim, ylim)
         self.header = header
 
-    def make_segmap(self):
-        """Make a pixel segmentation map that paints the Voronoi bin number
-        on Voronoi pixels.
-
-        The result is stored as the :attr:`segmap` attribute and returned to
-        the caller.
-
-        Returns
-        -------
-        segmap : ndarray
-            The segmentation map array, :attr:`segmap`.
-        """
-        self.segmap = self.render_voronoi_field(
-            np.arange(0, self.yNode.shape[0]))
-        print "segmap.shape", self.segmap.shape
-        return self.segmap
+    @property
+    def segmap(self):
+        """Segmentation map of Voronoi bin numbers for each pixel."""
+        if self._segmap is None:
+            self._segmap = self.render_voronoi_field(
+                np.arange(0, self.yNode.shape[0]))
+        return self._segmap
 
     def render_voronoi_field(self, nodeValues):
         """Renders the Voronoi field onto the pixel context with the given
@@ -127,6 +124,8 @@ class VoronoiTessellation(object):
         """Convenience wrapper to :meth:`make_segmap` that saves the
         segmentation map to a FITS file.
 
+        TODO: This should be removed.
+
         Parameters
         ----------
         fitsPath : str
@@ -136,14 +135,14 @@ class VoronoiTessellation(object):
         fitsDir = os.path.dirname(fitsPath)
         if fitsDir is not '' and fitsDir is not os.path.exists(fitsDir):
             os.makedirs(fitsDir)
-        if self.segmap is None:
+        if self._segmap is None:
             self.make_segmap()
         if self.header is not None:
             astropy.io.fits.writeto(
-                fitsPath, self.segmap, self.header,
+                fitsPath, self._segmap, self.header,
                 clobber=True)
         else:
-            astropy.io.fits.writeto(fitsPath, self.segmap, clobber=True)
+            astropy.io.fits.writeto(fitsPath, self._segmap, clobber=True)
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the
@@ -171,14 +170,14 @@ class VoronoiTessellation(object):
             Array of cell areas (square pixels). This array is also
             stored as :attr:`cellAreas`.
         """
-        assert self.segmap is not None, "Compute a segmentation map first"
+        assert self._segmap is not None, "Compute a segmentation map first"
 
         if flagmap is not None:
             # If a flagmap is available, flagged pixels are set to NaN
-            _segmap = self.segmap.copy()
+            _segmap = self._segmap.copy()
             _segmap[flagmap > 0] = np.nan
         else:
-            _segmap = self.segmap
+            _segmap = self._segmap
         pixelCounts = np.bincount(_segmap.ravel())
         self.cellAreas = pixelCounts
         return self.cellAreas

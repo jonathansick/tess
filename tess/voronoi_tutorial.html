@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial: Equal-S/N Pixel Binning with Voronoi Diagrams &mdash; tess v0.0.dev98</title>
+    
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.dev98',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="top" title="tess v0.0.dev98" href="../index.html" />
+    <link rel="up" title="User’s Guide to Tess" href="index.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="User’s Guide to Tess" href="index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="../_static/copybutton.js"></script>
+
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api/index.html" title="API Reference">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="index.html" title="User’s Guide to Tess">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">tess v0.0.dev98</a>
+	 &raquo;
+      </li>
+      <li><a href="index.html" accesskey="U">User&#8217;s Guide to Tess</a> &raquo;</li>
+      
+      <li>Tutorial: Equal-S/N Pixel Binning with Voronoi Diagrams</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tutorial-equal-s-n-pixel-binning-with-voronoi-diagrams">
+<h1>Tutorial: Equal-S/N Pixel Binning with Voronoi Diagrams<a class="headerlink" href="#tutorial-equal-s-n-pixel-binning-with-voronoi-diagrams" title="Permalink to this headline">¶</a></h1>
+<p><tt class="xref py py-mod docutils literal"><span class="pre">tess</span></tt> can be used to bin images into equal S/N regions.
+This procedure was popularized by <a class="reference external" href="http://adsabs.harvard.edu/abs/2003MNRAS.342..345C">Cappellari &amp; Copin 2003</a> in the context of SAURON IFS imaging.
+Rather than increasing S/N by binning pixels into larger square regions, Voronoi binning optimizes resolution while giving each super pixel approximately the same noise properties.</p>
+<p>To begin, we&#8217;ll make a mock data set with a 2D Gaussian and a fixed noise level:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+<span class="n">img</span> <span class="o">=</span> <span class="mf">10.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">pix_x</span> <span class="o">-</span> <span class="mf">128.</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="mf">50.</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">)</span> <span class="o">+</span>
+                      <span class="p">(</span><span class="n">pix_y</span> <span class="o">-</span> <span class="mf">128.</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="mf">50.</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">)))</span>
+<span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">pix_sn</span> <span class="o">=</span> <span class="n">img</span> <span class="o">/</span> <span class="n">noise</span>
+</pre></div>
+</div>
+<p>To seed the Voronoi tessellation we need to partition the pixels into bins that reach our target S/N (here, 50).
+This is done with the <a class="reference internal" href="api/pixel_accretion.html#module-tess.pixel_accretion" title="tess.pixel_accretion"><tt class="xref py py-mod docutils literal"><span class="pre">tess.pixel_accretion</span></tt></a> module:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">tess.pixel_accretion</span> <span class="kn">import</span> <span class="n">EqualSNAccretor</span>
+<span class="n">accretor</span> <span class="o">=</span> <span class="n">EqualSNAccretor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="mf">50.</span><span class="p">)</span>
+<span class="n">accretor</span><span class="o">.</span><span class="n">accrete</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">accretor</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+<span class="n">generator_centroids</span> <span class="o">=</span> <span class="n">accretor</span><span class="o">.</span><span class="n">centroids</span>
+</pre></div>
+</div>
+<p>Here we&#8217;re constructing a <a class="reference internal" href="api/pixel_accretion.html#tess.pixel_accretion.EqualSNAccretor" title="tess.pixel_accretion.EqualSNAccretor"><tt class="xref py py-class docutils literal"><span class="pre">tess.pixel_accretion.EqualSNAccretor</span></tt></a> pipeline with our image and noise map and specify that we want bins with a minimum S/N of 50.
+Then we begin accretion from the pixel at <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0)</span></tt>.
+In the <tt class="docutils literal"><span class="pre">cleanup</span></tt> phase we reassign pixels from bins that failed to grow to the desired S/N into neighbouring mature bins.
+Finally, <tt class="docutils literal"><span class="pre">accretor.centroids</span></tt> provides the <tt class="docutils literal"><span class="pre">(x,y)</span></tt> pixel coordinates of the centroids of each bin.
+Here&#8217;s a map of those centroids and pixel segmentation into roughly equal S/N bins:</p>
+<img alt="../_images/iso_sn_accretion.png" src="../_images/iso_sn_accretion.png" />
+<p>Of course, this is not a Voronoi map; the bins have odd shapes dictated by the circumstances of the pixel accretion.
+But we can use these generator centroids as seeds for a Centroidal Voronoi Tessellation (CVT), which convergently segments the pixels into a Voronoi segmentation so that the Voronoi nodes coincide with the centre of mass of each Voronoi cell:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pix_x</span><span class="p">,</span> <span class="n">pix_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+<span class="kn">from</span> <span class="nn">tess.cvtessellation</span> <span class="kn">import</span> <span class="n">CVTessellation</span>
+<span class="n">cvt</span> <span class="o">=</span> <span class="n">CVTessellation</span><span class="p">(</span><span class="n">pix_x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                     <span class="n">pix_y</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                     <span class="n">pix_sn</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">**</span> <span class="mf">2.</span><span class="p">,</span>
+                     <span class="n">node_xy</span><span class="o">=</span><span class="n">generator_centroids</span><span class="p">)</span>
+<span class="n">cvt_x</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">xNode</span>
+<span class="n">cvt_y</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">yNode</span>
+<span class="k">print</span> <span class="s">&quot;N nodes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cvt_x</span><span class="p">)</span>
+<span class="n">cvt</span><span class="o">.</span><span class="n">set_pixel_grid</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                   <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="n">segimage</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">make_segmap</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Plotting this segmentation image and teh cooresponding Voronoi nodes, we see</p>
+<img alt="../_images/iso_sn_voronoi.png" src="../_images/iso_sn_voronoi.png" />
+<p>For the full source code of this example, see <a class="reference external" href="https://github.com/jonathansick/tess/blob/master/scripts/demo_iso_sn_voronoi.py">scripts/demo_iso_sn_voronoi.py</a></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Tutorial: Equal-S/N Pixel Binning with Voronoi Diagrams</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/tess/voronoi_tutorial.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 07 Aug 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

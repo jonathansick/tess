@@ -13,7 +13,8 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   
+
+   voronoi_tutorial
    api/index
 
 Inspiration

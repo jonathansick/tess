@@ -10,7 +10,7 @@ To begin, we'll make a mock data set with a 2D Gaussian and a fixed noise level:
    import numpy as np
    shape = (256, 256)
    img = 10. * np.exp(-((pix_x - 128.) ** 2. / (2. * 50. ** 2.) +
-                         (pix_y - 128.) ** 2. / (2. * 50. ** 2.)))
+                        (pix_y - 128.) ** 2. / (2. * 50. ** 2.)))
    noise = np.ones(shape, dtype=float)
    pix_sn = img / noise
 

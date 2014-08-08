@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The tess.pixel_accretion Module &mdash; tess v0.0.dev99</title>
+    <title>The tess.pixel_accretion Module &mdash; tess v0.0.dev107</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev99',
+        VERSION:     '0.0.dev107',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev99" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev107" href="../../index.html" />
     <link rel="up" title="API Reference" href="index.html" />
     <link rel="next" title="The tess.starfield Module" href="starfield.html" />
     <link rel="prev" title="The tess.point_accretion Module" href="point_accretion.html" />
@@ -69,7 +69,7 @@
 	 |
       </li>
       <li>
-	<a href="../../index.html">tess v0.0.dev99</a>
+	<a href="../../index.html">tess v0.0.dev107</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
@@ -90,7 +90,7 @@
 <p>Pixel accretion methods for segmenting images.</p>
 <dl class="class">
 <dt id="tess.pixel_accretion.EqualSNAccretor">
-<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">EqualSNAccretor</tt><big>(</big><em>image</em>, <em>noise_image</em>, <em>target_sn</em>, <em>min_pixels=1</em>, <em>max_pixels=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#EqualSNAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.EqualSNAccretor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">EqualSNAccretor</tt><big>(</big><em>image</em>, <em>noise_image</em>, <em>target_sn</em>, <em>min_pixels=1</em>, <em>max_pixels=None</em>, <em>start=(0</em>, <em>0)</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#EqualSNAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.EqualSNAccretor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bin pixels to make iso-signal-to-noise regions.</p>
 <p>Each region will have roughly equal S/N ratio. Thus high S/N regions
 will have high resolution, while low S/N regions will tend to be larger.
@@ -118,9 +118,13 @@ must match the shape of <tt class="docutils literal"><span class="pre">image</sp
 <div><p>Minimum number of pixels that need to be in a single bin.</p>
 </div></blockquote>
 <p><strong>max_pixels</strong> : int</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Maximum number of pixels that can be accreted into a single bin.
 If <tt class="docutils literal"><span class="pre">None</span></tt>, then no limit is enforced.</p>
+</div></blockquote>
+<p><strong>start</strong> : tuple</p>
+<blockquote class="last">
+<div><p>Pixel coordinate to begin accretion from.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -200,7 +204,7 @@ centroid.</p>
 
 <dl class="class">
 <dt id="tess.pixel_accretion.IsoIntensityAccretor">
-<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">IsoIntensityAccretor</tt><big>(</big><em>image</em>, <em>intensity_sigma_limit</em>, <em>min_pixels=1</em>, <em>max_pixels=None</em>, <em>max_shift_frac=0.05</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">IsoIntensityAccretor</tt><big>(</big><em>image</em>, <em>intensity_sigma_limit</em>, <em>min_pixels=1</em>, <em>max_pixels=None</em>, <em>max_shift_frac=0.05</em>, <em>start=(0</em>, <em>0)</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#IsoIntensityAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.IsoIntensityAccretor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bin pixels to make iso-intensity regions.</p>
 <p>Each region in the image will have a standard deviation of pixel
 intensities within a user-defined limit. This can be thought of as
@@ -228,9 +232,13 @@ single bin.</p>
 If <tt class="docutils literal"><span class="pre">None</span></tt>, then no limit is enforced.</p>
 </div></blockquote>
 <p><strong>max_shift_frac</strong> : flaot</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Maximum fractional change of the bin&#8217;s mean before the edge pixel
 heap is updated.</p>
+</div></blockquote>
+<p><strong>start</strong> : tuple</p>
+<blockquote class="last">
+<div><p>Pixel coordinate to begin accretion from.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -298,7 +306,7 @@ and the mean intensity of the existing bin.</p>
 
 <dl class="class">
 <dt id="tess.pixel_accretion.PixelAccretor">
-<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">PixelAccretor</tt><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">tess.pixel_accretion.</tt><tt class="descname">PixelAccretor</tt><big>(</big><em>ij0=(0</em>, <em>0)</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Baseclass for pixel accretion.</p>
 <p>Unlike the point accretion algorithms in <a class="reference internal" href="point_accretion.html#module-tess.point_accretion" title="tess.point_accretion"><tt class="xref py py-mod docutils literal"><span class="pre">tess.point_accretion</span></tt></a>,
 these pixel accretion tools uses the grid geometry of images and only
@@ -317,24 +325,6 @@ that should be the same shape as the image, but with weights for computing
 centroids of pixel bins.</p>
 <p>See <a class="reference internal" href="#tess.pixel_accretion.IsoIntensityAccretor" title="tess.pixel_accretion.IsoIntensityAccretor"><tt class="xref py py-class docutils literal"><span class="pre">tess.pixel_accretion.IsoIntensityAccretor</span></tt></a>
 and <a class="reference internal" href="#tess.pixel_accretion.EqualSNAccretor" title="tess.pixel_accretion.EqualSNAccretor"><tt class="xref py py-class docutils literal"><span class="pre">tess.pixel_accretion.EqualSNAccretor</span></tt></a> for examples.</p>
-<dl class="method">
-<dt id="tess.pixel_accretion.PixelAccretor.accrete">
-<tt class="descname">accrete</tt><big>(</big><em>ij0</em><big>)</big><a class="reference internal" href="../../_modules/tess/pixel_accretion.html#PixelAccretor.accrete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.accrete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the pixel accretion algorithm, starting with pixel ij0.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>idx</strong> : tuple</p>
-<blockquote class="last">
-<div><p>Index of first pixel.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="tess.pixel_accretion.PixelAccretor.bin_nums">
 <tt class="descname">bin_nums</tt><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.bin_nums" title="Permalink to this definition">¶</a></dt>
@@ -349,8 +339,8 @@ the <tt class="docutils literal"><span class="pre">centroids</span></tt> attribu
 </dd></dl>
 
 <dl class="attribute">
-<dt id="tess.pixel_accretion.PixelAccretor.segimage">
-<tt class="descname">segimage</tt><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.segimage" title="Permalink to this definition">¶</a></dt>
+<dt id="tess.pixel_accretion.PixelAccretor.segmap">
+<tt class="descname">segmap</tt><a class="headerlink" href="#tess.pixel_accretion.PixelAccretor.segmap" title="Permalink to this definition">¶</a></dt>
 <dd><p>The segmentation map, where pixels are labeled by bin number.</p>
 </dd></dl>
 

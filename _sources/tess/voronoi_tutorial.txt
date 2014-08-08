@@ -1,5 +1,5 @@
-Tutorial: Equal-S/N Pixel Binning with Voronoi Diagrams
-=======================================================
+Equal-S/N Pixel Binning with Voronoi Diagrams
+=============================================
 
 :mod:`tess` can be used to bin images into equal S/N regions.
 This procedure was popularized by `Cappellari & Copin 2003 <http://adsabs.harvard.edu/abs/2003MNRAS.342..345C>`_ in the context of SAURON IFS imaging.
@@ -18,8 +18,7 @@ To seed the Voronoi tessellation we need to partition the pixels into bins that 
 This is done with the :mod:`tess.pixel_accretion` module::
 
    from tess.pixel_accretion import EqualSNAccretor
-   accretor = EqualSNAccretor(img, noise, 50.)
-   accretor.accrete((0, 0))
+   accretor = EqualSNAccretor(img, noise, 50., start=(0, 0))
    accretor.cleanup()
    generator_centroids = accretor.centroids
 
@@ -32,24 +31,15 @@ Here's a map of those centroids and pixel segmentation into roughly equal S/N bi
 .. image:: images/iso_sn_accretion.*
 
 Of course, this is not a Voronoi map; the bins have odd shapes dictated by the circumstances of the pixel accretion.
-But we can use these generator centroids as seeds for a Centroidal Voronoi Tessellation (CVT), which convergently segments the pixels into a Voronoi segmentation so that the Voronoi nodes coincide with the centre of mass of each Voronoi cell::
+But we can use these generator centroids as seeds for a Centroidal Voronoi Tessellation (CVT), which segments the pixels into a Voronoi tessellation so that the Voronoi nodes coincide with the centre of mass of each Voronoi cell and each Voronoi cell has approximately equal mass (or in this case, S/N)::
 
-
-   pix_x, pix_y = np.meshgrid(np.arange(shape[1], dtype=float),
-                              np.arange(shape[0], dtype=float))
    from tess.cvtessellation import CVTessellation
-   cvt = CVTessellation(pix_x.flatten(),
-                        pix_y.flatten(),
-                        pix_sn.flatten() ** 2.,
-                        node_xy=generator_centroids)
-   cvt_x = cvt.xNode
-   cvt_y = cvt.yNode
-   print "N nodes", len(cvt_x)
-   cvt.set_pixel_grid((0, img.shape[1]),
-                      (0, img.shape[0]))
-   segimage = cvt.make_segmap()
+   cvt = CVTessellation.from_image(pix_sn ** 2., generator_centroids)
+   cvt_xy = cvt.nodes
+   print "N nodes", cvt_xy.shape[0]
+   segimage = cvt.segmap
 
-Plotting this segmentation image and teh cooresponding Voronoi nodes, we see
+Plotting this segmentation image and the corresponding Voronoi nodes, we see
 
 .. image:: images/iso_sn_voronoi.*
 

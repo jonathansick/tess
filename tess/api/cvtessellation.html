@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The tess.cvtessellation Module &mdash; tess v0.0.dev99</title>
+    <title>The tess.cvtessellation Module &mdash; tess v0.0.dev107</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev99',
+        VERSION:     '0.0.dev107',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev99" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev107" href="../../index.html" />
     <link rel="up" title="API Reference" href="index.html" />
     <link rel="next" title="The tess.delaunay Module" href="delaunay.html" />
     <link rel="prev" title="API Reference" href="index.html" />
@@ -69,7 +69,7 @@
 	 |
       </li>
       <li>
-	<a href="../../index.html">tess v0.0.dev99</a>
+	<a href="../../index.html">tess v0.0.dev107</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
@@ -90,7 +90,7 @@
 <p>Centroidal Voronoi Tessellations (using Lloyd&#8217;s algorithm).</p>
 <dl class="class">
 <dt id="tess.cvtessellation.CVTessellation">
-<em class="property">class </em><tt class="descclassname">tess.cvtessellation.</tt><tt class="descname">CVTessellation</tt><big>(</big><em>xPoints</em>, <em>yPoints</em>, <em>densPoints</em>, <em>node_xy=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">tess.cvtessellation.</tt><tt class="descname">CVTessellation</tt><big>(</big><em>x_points</em>, <em>y_points</em>, <em>dens_points</em>, <em>node_xy=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses Lloyd&#8217;s algorithm to assign data points to Voronoi bins so that
 each bin has an equal mass.</p>
 <p>Inherits from <a class="reference internal" href="voronoi.html#tess.voronoi.VoronoiTessellation" title="tess.voronoi.VoronoiTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.voronoi.VoronoiTessellation</span></tt></a>.</p>
@@ -98,15 +98,15 @@ each bin has an equal mass.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xPoints</strong> : ndarray</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x_points</strong> : ndarray</p>
 <blockquote>
 <div><p>Array of cartesian <tt class="docutils literal"><span class="pre">x</span></tt> locations of each data point.</p>
 </div></blockquote>
-<p><strong>yPoints</strong> : ndarray</p>
+<p><strong>y_points</strong> : ndarray</p>
 <blockquote>
 <div><p>Array of cartesian <tt class="docutils literal"><span class="pre">y</span></tt> locations of each data point.</p>
 </div></blockquote>
-<p><strong>densPoints</strong> : ndarray</p>
+<p><strong>dens_points</strong> : ndarray</p>
 <blockquote>
 <div><p>Density <em>or weight</em> of each point. For an equal-S/N generator, this
 should be set to <img class="math" src="../../_images/math/db333e6674983bf9d313b131692057b7bab32a4c.png" alt="(S/N)^2"/>. For an equal number generator this
@@ -123,6 +123,36 @@ an array of generators accordinate to target mass or S/N.</p>
 </tr>
 </tbody>
 </table>
+<dl class="classmethod">
+<dt id="tess.cvtessellation.CVTessellation.from_image">
+<em class="property">classmethod </em><tt class="descname">from_image</tt><big>(</big><em>density</em>, <em>generators</em><big>)</big><a class="headerlink" href="#tess.cvtessellation.CVTessellation.from_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience constructor for centroidal Voronoi tessellations
+of pixel data sets.</p>
+<p>The (x, y) point coordinates are automatically set to be the 0-based
+pixel indices. <tt class="xref py py-meth docutils literal"><span class="pre">CVTessellation.set_pixel_grid()</span></tt> is automatically
+called to set the pixel grid to the match the image dimensions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>density</strong> : ndarray</p>
+<blockquote>
+<div><p>A 2D image with the density. The CVT partitions the density
+map so each cell has approximately equal mass.</p>
+</div></blockquote>
+<p><strong>generators</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>A <tt class="docutils literal"><span class="pre">(n_nodes,</span> <span class="pre">2)</span></tt> array of point coordinates with initial
+starting points for each Voronoi cell.
+Note that coordinates are (x, y), which is the reverse of (y, x)
+image indices.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="tess.cvtessellation.CVTessellation.get_node_membership">
 <tt class="descname">get_node_membership</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation.get_node_membership"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation.get_node_membership" title="Permalink to this definition">¶</a></dt>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The tess.voronoi Module &mdash; tess v0.0.dev99</title>
+    <title>The tess.voronoi Module &mdash; tess v0.0.dev107</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev99',
+        VERSION:     '0.0.dev107',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev99" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev107" href="../../index.html" />
     <link rel="up" title="API Reference" href="index.html" />
     <link rel="next" title="The tess.point_accretion Module" href="point_accretion.html" />
     <link rel="prev" title="The tess.delaunay Module" href="delaunay.html" />
@@ -69,7 +69,7 @@
 	 |
       </li>
       <li>
-	<a href="../../index.html">tess v0.0.dev99</a>
+	<a href="../../index.html">tess v0.0.dev107</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
@@ -166,7 +166,7 @@ each point is assumed to have unit mass.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method requires that the segmentation map is computed
-(see <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a>), and is potentially expensive (I&#8217;m working
+(see <tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt>), and is potentially expensive (I&#8217;m working
 on a faster implementation). Uses <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.bincount.html#numpy.bincount" title="(in NumPy v1.8)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.bincount()</span></tt></a> to count
 number of pixels in the segmentation map with a given Voronoi
 cell value. I&#8217;d prefer to calculate these from simple geometry,
@@ -220,30 +220,9 @@ stored as <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.
 </dd></dl>
 
 <dl class="attribute">
-<dt id="tess.voronoi.VoronoiTessellation.header">
-<tt class="descname">header</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.header" title="Permalink to this definition">¶</a></dt>
-<dd><p>a PyFITS header representing pixel grid</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="tess.voronoi.VoronoiTessellation.make_segmap">
-<tt class="descname">make_segmap</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.make_segmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a pixel segmentation map that paints the Voronoi bin number
-on Voronoi pixels.</p>
-<p>The result is stored as the <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.segmap" title="tess.voronoi.VoronoiTessellation.segmap"><tt class="xref py py-attr docutils literal"><span class="pre">segmap</span></tt></a> attribute and returned to
-the caller.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>segmap</strong> : ndarray</p>
-<blockquote class="last">
-<div><p>The segmentation map array, <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.segmap" title="tess.voronoi.VoronoiTessellation.segmap"><tt class="xref py py-attr docutils literal"><span class="pre">segmap</span></tt></a>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="tess.voronoi.VoronoiTessellation.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Voronoi tessellation nodes, a <tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">2)</span></tt> array.</p>
 </dd></dl>
 
 <dl class="method">
@@ -278,24 +257,6 @@ Voronoi assignment.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="tess.voronoi.VoronoiTessellation.plot_nodes">
-<tt class="descname">plot_nodes</tt><big>(</big><em>plotPath</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.plot_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.plot_nodes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the points in each bin as a different colour</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>plotPath</strong> : str</p>
-<blockquote class="last">
-<div><p>Path where the plot will be saved.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="tess.voronoi.VoronoiTessellation.render_voronoi_field">
 <tt class="descname">render_voronoi_field</tt><big>(</big><em>nodeValues</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.render_voronoi_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.render_voronoi_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders the Voronoi field onto the pixel context with the given
@@ -303,7 +264,7 @@ Voronoi assignment.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Must set the pixel grid context with
-either <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="tess.voronoi.VoronoiTessellation.set_pixel_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_pixel_grid()</span></tt></a> or <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_fits_grid" title="tess.voronoi.VoronoiTessellation.set_fits_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_fits_grid()</span></tt></a> first!</p>
+either <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="tess.voronoi.VoronoiTessellation.set_pixel_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_pixel_grid()</span></tt></a> or <tt class="xref py py-meth docutils literal"><span class="pre">set_fits_grid()</span></tt> first!</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -326,54 +287,10 @@ either <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="tess.voronoi.VoronoiTessellation.save_segmap">
-<tt class="descname">save_segmap</tt><big>(</big><em>fitsPath</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.save_segmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.save_segmap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience wrapper to <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a> that saves the
-segmentation map to a FITS file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fitsPath</strong> : str</p>
-<blockquote class="last">
-<div><p>Full filename destination of FITS file.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="tess.voronoi.VoronoiTessellation.segmap">
-<tt class="descname">segmap</tt><em class="property"> = None</em><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.segmap" title="Permalink to this definition">¶</a></dt>
-<dd><p>2D <tt class="xref py py-obj docutils literal"><span class="pre">ndarray</span></tt> of <tt class="xref py py-obj docutils literal"><span class="pre">vBinNum</span></tt> for each pixel</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="tess.voronoi.VoronoiTessellation.set_fits_grid">
-<tt class="descname">set_fits_grid</tt><big>(</big><em>header</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.set_fits_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.set_fits_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience wrapper to <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="tess.voronoi.VoronoiTessellation.set_pixel_grid"><tt class="xref py py-meth docutils literal"><span class="pre">set_pixel_grid()</span></tt></a> if a FITS header is
-available. As a bonus, the FITS header will be used when saving
-any rendered fields to FITS.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The header is available as the <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.header" title="tess.voronoi.VoronoiTessellation.header"><tt class="xref py py-attr docutils literal"><span class="pre">header</span></tt></a> attribute.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>header</strong> : <a class="reference external" href="http://docs.astropy.org/en/stable/io/fits/api/headers.html#astropy.io.fits.Header" title="(in Astropy v0.4)"><tt class="xref py py-class docutils literal"><span class="pre">astropy.io.fits.Header</span></tt></a></p>
-<blockquote class="last">
-<div><p>An astropy FITS image header; defines area of rendered Voronoi
-images (e.g. segmentaion maps or fields).</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<tt class="descname">segmap</tt><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.segmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segmentation map of Voronoi bin numbers for each pixel.</p>
 </dd></dl>
 
 <dl class="method">
@@ -381,11 +298,8 @@ images (e.g. segmentaion maps or fields).</p>
 <tt class="descname">set_pixel_grid</tt><big>(</big><em>xlim</em>, <em>ylim</em><big>)</big><a class="reference internal" href="../../_modules/tess/voronoi.html#VoronoiTessellation.set_pixel_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.voronoi.VoronoiTessellation.set_pixel_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set a pixel grid bounding box for the tessellation. This is
 used when rendering Voronoi fields or computing cell areas.</p>
-<p>Setting the pixel grid is a prerequistie for running the methods:</p>
-<ul class="simple">
-<li><a class="reference internal" href="#tess.voronoi.VoronoiTessellation.make_segmap" title="tess.voronoi.VoronoiTessellation.make_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">make_segmap()</span></tt></a> and <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.save_segmap" title="tess.voronoi.VoronoiTessellation.save_segmap"><tt class="xref py py-meth docutils literal"><span class="pre">save_segmap()</span></tt></a></li>
-<li><a class="reference internal" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="tess.voronoi.VoronoiTessellation.compute_cell_areas"><tt class="xref py py-meth docutils literal"><span class="pre">compute_cell_areas()</span></tt></a></li>
-</ul>
+<p>Setting the pixel grid is a prerequistie for using the <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.segmap" title="tess.voronoi.VoronoiTessellation.segmap"><tt class="xref py py-attr docutils literal"><span class="pre">segmap</span></tt></a>
+attribute and <a class="reference internal" href="#tess.voronoi.VoronoiTessellation.compute_cell_areas" title="tess.voronoi.VoronoiTessellation.compute_cell_areas"><tt class="xref py py-meth docutils literal"><span class="pre">compute_cell_areas()</span></tt></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

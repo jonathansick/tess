@@ -4,7 +4,6 @@
 Representation of Voronoi Tessellations.
 """
 
-import os
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial import KDTree
@@ -28,16 +27,13 @@ class VoronoiTessellation(object):
         self.cellAreas = None  #: 1D array of Voronoi cell areas
         self.xlim = None  #: Length-2 array of min, max coords of x pixel grid
         self.ylim = None  #: Length-2 array of min, max coords of y pixel grid
-        self.header = None  #: a PyFITS header representing pixel grid
 
     def set_pixel_grid(self, xlim, ylim):
         """Set a pixel grid bounding box for the tessellation. This is
         used when rendering Voronoi fields or computing cell areas.
 
-        Setting the pixel grid is a prerequistie for running the methods:
-
-        - :meth:`make_segmap` and :meth:`save_segmap`
-        - :meth:`compute_cell_areas`
+        Setting the pixel grid is a prerequistie for using the :attr:`segmap`
+        attribute and :meth:`compute_cell_areas` method.
 
         Parameters
         ----------
@@ -54,27 +50,6 @@ class VoronoiTessellation(object):
         # Reset dependencies
         self._segmap = None
         self.cellAreas = None
-
-    def set_fits_grid(self, header):
-        """Convenience wrapper to :meth:`set_pixel_grid` if a FITS header is
-        available. As a bonus, the FITS header will be used when saving
-        any rendered fields to FITS.
-
-        .. note:: The header is available as the :attr:`header` attribute.
-
-        .. todo:: Should be removed
-
-        Parameters
-        ----------
-        header : :class:`astropy.io.fits.Header`
-            An astropy FITS image header; defines area of rendered Voronoi
-            images (e.g. segmentaion maps or fields).
-        """
-        # Assume origin at 1, FITS standard
-        xlim = (1, header['NAXIS2'] + 1)
-        ylim = (1, header['NAXIS1'] + 1)
-        self.set_pixel_grid(xlim, ylim)
-        self.header = header
 
     @property
     def segmap(self):
@@ -119,30 +94,6 @@ class VoronoiTessellation(object):
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
         return griddata(yxNode, nodeValues, (xgrid, ygrid), method='nearest')
-
-    def save_segmap(self, fitsPath):
-        """Convenience wrapper to :meth:`make_segmap` that saves the
-        segmentation map to a FITS file.
-
-        TODO: This should be removed.
-
-        Parameters
-        ----------
-        fitsPath : str
-            Full filename destination of FITS file.
-        """
-        import astropy.io.fits
-        fitsDir = os.path.dirname(fitsPath)
-        if fitsDir is not '' and fitsDir is not os.path.exists(fitsDir):
-            os.makedirs(fitsDir)
-        if self._segmap is None:
-            self.make_segmap()
-        if self.header is not None:
-            astropy.io.fits.writeto(
-                fitsPath, self._segmap, self.header,
-                clobber=True)
-        else:
-            astropy.io.fits.writeto(fitsPath, self._segmap, clobber=True)
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the
@@ -272,25 +223,3 @@ class VoronoiTessellation(object):
         if self.cellAreas is None:
             self.compute_cell_areas(flagmap=flagmap)
         return self.sum_cell_point_mass(x, y, mass=mass) / self.cellAreas
-
-    def plot_nodes(self, plotPath):
-        """Plots the points in each bin as a different colour
-
-        Parameters
-        ----------
-        plotPath : str
-            Path where the plot will be saved.
-        """
-        from matplotlib.backends.backend_pdf \
-            import FigureCanvasPdf as FigureCanvas
-        from matplotlib.figure import Figure
-
-        fig = Figure(figsize=(6, 4))
-        canvas = FigureCanvas(fig)
-        ax = fig.add_subplot(111)
-        ax.plot(self.xNode, self.yNode, 'ok')
-        if self.xlim is not None:
-            ax.set_xlim(self.xlim)
-        if self.ylim is not None:
-            ax.set_ylim(self.ylim)
-        canvas.print_figure(plotPath)

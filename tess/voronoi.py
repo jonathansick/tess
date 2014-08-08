@@ -28,6 +28,11 @@ class VoronoiTessellation(object):
         self.xlim = None  #: Length-2 array of min, max coords of x pixel grid
         self.ylim = None  #: Length-2 array of min, max coords of y pixel grid
 
+    @property
+    def nodes(self):
+        """Voronoi tessellation nodes, a ``(n_points, 2)`` array."""
+        return np.column_stack((self.xNode, self.yNode))
+
     def set_pixel_grid(self, xlim, ylim):
         """Set a pixel grid bounding box for the tessellation. This is
         used when rendering Voronoi fields or computing cell areas.

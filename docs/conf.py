@@ -123,6 +123,8 @@ html_title = '{0} v{1}'.format(project, release)
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
 
+html_extra_path = ['CNAME']
+
 
 # -- Options for LaTeX output --------------------------------------------------
 

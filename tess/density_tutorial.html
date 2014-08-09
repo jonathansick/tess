@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Point Density Estimation and Field Rendering &mdash; tess v0.0.dev114</title>
+    
+    <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.dev114',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
+    <link rel="top" title="tess v0.0.dev114" href="../index.html" />
+    <link rel="up" title="User’s Guide to Tess" href="index.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="Equal-S/N Pixel Binning with Centroidal Voronoi Tessellation" href="voronoi_tutorial.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="../_static/copybutton.js"></script>
+
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="api/index.html" title="API Reference">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="voronoi_tutorial.html" title="Equal-S/N Pixel Binning with Centroidal Voronoi Tessellation">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../index.html">tess v0.0.dev114</a>
+	 &raquo;
+      </li>
+      <li><a href="index.html" accesskey="U">User&#8217;s Guide to Tess</a> &raquo;</li>
+      
+      <li>Point Density Estimation and Field Rendering</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="point-density-estimation-and-field-rendering">
+<h1>Point Density Estimation and Field Rendering<a class="headerlink" href="#point-density-estimation-and-field-rendering" title="Permalink to this headline">¶</a></h1>
+<p>Many tasks in astronomy involve a set of points on a 2D plane: a distribution of stars in an image is one example.
+We might wish to map the density of this point distribution and plot an image of the density field.
+In this tutorial we&#8217;ll see how <tt class="xref py py-mod docutils literal"><span class="pre">tess</span></tt> can accomplish this task.</p>
+<p>We begin by constructing a mock point data set with points drawn from a bi-normal distribution:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">img_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+<span class="n">mean</span> <span class="o">=</span> <span class="p">(</span><span class="mf">512.</span><span class="p">,</span> <span class="mf">512.</span><span class="p">)</span>
+<span class="n">cov</span> <span class="o">=</span> <span class="mf">50000.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)))</span>
+<span class="n">point_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">&amp;</span>
+             <span class="p">(</span><span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">&amp;</span>
+             <span class="p">(</span><span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">&amp;</span>
+             <span class="p">(</span><span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">point_xy</span> <span class="o">=</span> <span class="n">point_xy</span><span class="p">[</span><span class="n">s</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">point_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">point_xy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Here we set <tt class="docutils literal"><span class="pre">point_mass</span></tt> to 1.0 for each point, though in practise this could be any weighting or attribute associated with a point (such as luminosity, or mass).</p>
+<p>Our point distribution looks like this:</p>
+<img alt="../_images/density_demo_points.png" src="../_images/density_demo_points.png" />
+<p>Although it is not strictly necessary to bin points when estimating a density field, doing so reduces Poisson noise.
+Lets construct a centroidal Voronoi tessellation so that each Voronoi cell contains a mass of 10 points.
+This is a two-step process of first making a set of generators by accreting points into bins with <a class="reference internal" href="api/point_accretion.html#tess.point_accretion.EqualMassAccretor" title="tess.point_accretion.EqualMassAccretor"><tt class="xref py py-class docutils literal"><span class="pre">tess.point_accretion.EqualMassAccretor</span></tt></a> and then producing the centroidal Voronoi tessellation with <a class="reference internal" href="api/cvtessellation.html#tess.cvtessellation.CVTessellation" title="tess.cvtessellation.CVTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.cvtessellation.CVTessellation</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">tess.point_accretion</span> <span class="kn">import</span> <span class="n">EqualMassAccretor</span>
+<span class="kn">from</span> <span class="nn">tess.cvtessellation</span> <span class="kn">import</span> <span class="n">CVTessellation</span>
+<span class="n">accretor</span> <span class="o">=</span> <span class="n">EqualMassAccretor</span><span class="p">(</span><span class="n">point_xy</span><span class="p">,</span> <span class="n">point_mass</span><span class="p">,</span> <span class="mf">100.</span><span class="p">)</span>
+<span class="n">accretor</span><span class="o">.</span><span class="n">accrete</span><span class="p">()</span>
+<span class="n">generator_xy</span> <span class="o">=</span> <span class="n">accretor</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+<span class="n">cvt</span> <span class="o">=</span> <span class="n">CVTessellation</span><span class="p">(</span><span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">point_xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">point_mass</span><span class="p">,</span>
+                     <span class="n">node_xy</span><span class="o">=</span><span class="n">generator_xy</span><span class="p">)</span>
+<span class="n">node_xy</span> <span class="o">=</span> <span class="n">cvt</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">node_xy</span></tt> are now the <tt class="docutils literal"><span class="pre">(x,y)</span></tt> coordinates of the Voronoi tessellation nodes.
+<tt class="docutils literal"><span class="pre">cvt.node_weights</span></tt> gives the total mass of points contained in each Voronoi cell.</p>
+<p>We can use this tessellation to create its dual, the Delaunay Tessellation (<a class="reference internal" href="api/delaunay.html#tess.delaunay.DelaunayTessellation" title="tess.delaunay.DelaunayTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.delaunay.DelaunayTessellation</span></tt></a>), and estimate the density field with the Delaunay Tessellation Field Estimator with the <a class="reference internal" href="api/density.html#tess.density.DelaunayDensityEstimator" title="tess.density.DelaunayDensityEstimator"><tt class="xref py py-class docutils literal"><span class="pre">tess.density.DelaunayDensityEstimator</span></tt></a> instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">tess.delaunay</span> <span class="kn">import</span> <span class="n">DelaunayTessellation</span>
+<span class="kn">from</span> <span class="nn">tess.density</span> <span class="kn">import</span> <span class="n">DelaunayDensityEstimator</span>
+<span class="n">delaunay</span> <span class="o">=</span> <span class="n">DelaunayTessellation</span><span class="p">(</span><span class="n">node_xy</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">node_xy</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">dtfe</span> <span class="o">=</span> <span class="n">DelaunayDensityEstimator</span><span class="p">(</span><span class="n">delaunay</span><span class="p">)</span>
+<span class="n">dens</span> <span class="o">=</span> <span class="n">dtfe</span><span class="o">.</span><span class="n">estimate_density</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                             <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                             <span class="n">cvt</span><span class="o">.</span><span class="n">node_weights</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now <tt class="docutils literal"><span class="pre">dens</span></tt> gives the density (as in, mass per area) at each node.
+We can render that density field, sampled at each node, with linear interpolation using the triangular facets of the Delaunay tessellation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">del_dens_map</span> <span class="o">=</span> <span class="n">delaunay</span><span class="o">.</span><span class="n">render_delaunay_field</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span>
+                                              <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                                              <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                              <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>The density field looks like this:</p>
+<img alt="../_images/density_demo_delaunay_field.png" src="../_images/density_demo_delaunay_field.png" />
+<p>For the full source code of this example, see <a class="reference external" href="https://github.com/jonathansick/tess/blob/master/scripts/demo_delaunay_density.py">scripts/demo_delaunay_density.py</a></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Point Density Estimation and Field Rendering</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../_sources/tess/density_tutorial.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 09 Aug 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

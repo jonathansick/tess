@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The tess.cvtessellation Module &mdash; tess v0.0.dev111</title>
+    <title>The tess.cvtessellation Module &mdash; tess v0.0.dev114</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev111',
+        VERSION:     '0.0.dev114',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev111" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev114" href="../../index.html" />
     <link rel="up" title="API Reference" href="index.html" />
     <link rel="next" title="The tess.delaunay Module" href="delaunay.html" />
     <link rel="prev" title="API Reference" href="index.html" />
@@ -69,7 +69,7 @@
 	 |
       </li>
       <li>
-	<a href="../../index.html">tess v0.0.dev111</a>
+	<a href="../../index.html">tess v0.0.dev114</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
@@ -153,43 +153,16 @@ image indices.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="tess.cvtessellation.CVTessellation.get_node_membership">
-<tt class="descname">get_node_membership</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation.get_node_membership"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation.get_node_membership" title="Permalink to this definition">¶</a></dt>
-<dd><p>Indices into voronoi bins for each point.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vBinNum</strong> : ndarray</p>
-<blockquote class="last">
-<div><p>An array, the length of the input point arrays, which have
-indices into the node arrays of
-<tt class="xref py py-meth docutils literal"><span class="pre">tess.CVTessellation.get_nodes()</span></tt>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="attribute">
+<dt id="tess.cvtessellation.CVTessellation.membership">
+<tt class="descname">membership</tt><a class="headerlink" href="#tess.cvtessellation.CVTessellation.membership" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of indices into Voronoi bins for each point.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="tess.cvtessellation.CVTessellation.get_node_weights">
-<tt class="descname">get_node_weights</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/tess/cvtessellation.html#CVTessellation.get_node_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.cvtessellation.CVTessellation.get_node_weights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weight of each Voronoi bin.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nodeWeights</strong> : ndarray</p>
-<blockquote class="last">
-<div><p>Array with sum of the density for the nodes, same order as
-<tt class="xref py py-meth docutils literal"><span class="pre">tess.CVTessellation.get_nodes()</span></tt></p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="attribute">
+<dt id="tess.cvtessellation.CVTessellation.node_weights">
+<tt class="descname">node_weights</tt><a class="headerlink" href="#tess.cvtessellation.CVTessellation.node_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weight of each Voronoi bin (sum of enclosed point masses).</p>
 </dd></dl>
 
 </dd></dl>
@@ -219,7 +192,7 @@ indices into the node arrays of
   <p>
     &copy; Copyright 2014, Jonathan Sick.<br/>
     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
-    Last built 08 Aug 2014. <br/>
+    Last built 09 Aug 2014. <br/>
   </p>
 </footer>
   </body>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>User’s Guide to Tess &mdash; tess v0.0.dev111</title>
+    <title>User’s Guide to Tess &mdash; tess v0.0.dev114</title>
     
     <link rel="stylesheet" href="../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.0.dev111',
+        VERSION:     '0.0.dev114',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev111" href="../index.html" />
+    <link rel="top" title="tess v0.0.dev114" href="../index.html" />
     <link rel="next" title="Equal-S/N Pixel Binning with Centroidal Voronoi Tessellation" href="voronoi_tutorial.html" />
     <link rel="prev" title="Documentation" href="../index.html" />
 <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
@@ -68,7 +68,7 @@
 	 |
       </li>
       <li>
-	<a href="../index.html">tess v0.0.dev111</a>
+	<a href="../index.html">tess v0.0.dev114</a>
 	 &raquo;
       </li>
       
@@ -84,17 +84,24 @@
             
   <div class="section" id="user-s-guide-to-tess">
 <h1>User&#8217;s Guide to Tess<a class="headerlink" href="#user-s-guide-to-tess" title="Permalink to this headline">¶</a></h1>
-<p>Tess is a Python package that supports three basic, and related, analysis tasks:</p>
-<ol class="arabic simple">
-<li>Adaptively binning a spatial dataset to maximize resolution and S/N.</li>
-<li>Estimating the density field in a spatial dataset</li>
-<li>Rendering a density field, or any other field, using the tessellation.</li>
-</ol>
+<p>Tess is a Python package that helps astronomers use Voronoi and Delaunay tessellations to work with point and pixel spatial datasets.
+Supported tasks include pixel and point binning, estimating density fields, and rendering fields with Voronoi and Delaunay geometries.
+The tutorials in this documentation should give a good idea of the pipelines that can be built with Tess.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Tess is not yet on PyPI, but can still be installed from GitHub:</p>
+<div class="highlight-python"><div class="highlight"><pre>pip install git+git://github.com/jonathansick/tess.git
+</pre></div>
+</div>
+<p>Alternatively, you&#8217;re welcome to clone <a class="reference external" href="http://github.com/jonathansick/tess">Tess from GitHub</a> and install using the usual <tt class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt> command.</p>
+<p>Tess depends on Astropy, Numpy, Scipy, Matplotlib and Cython.</p>
+</div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="voronoi_tutorial.html">Equal-S/N Pixel Binning with Centroidal Voronoi Tessellation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="density_tutorial.html">Point Density Estimation and Field Rendering</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/cvtessellation.html">The <tt class="docutils literal"><span class="pre">tess.cvtessellation</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/delaunay.html">The <tt class="docutils literal"><span class="pre">tess.delaunay</span></tt> Module</a></li>
@@ -130,6 +137,7 @@ The methods used for estimating 2D density fields with Delaunay tessellations (<
         <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
 <ul>
 <li><a class="reference internal" href="#">User&#8217;s Guide to Tess</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#contents">Contents</a></li>
 <li><a class="reference internal" href="#inspiration">Inspiration</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -150,7 +158,7 @@ The methods used for estimating 2D density fields with Delaunay tessellations (<
   <p>
     &copy; Copyright 2014, Jonathan Sick.<br/>
     Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
-    Last built 08 Aug 2014. <br/>
+    Last built 09 Aug 2014. <br/>
   </p>
 </footer>
   </body>

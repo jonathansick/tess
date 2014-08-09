@@ -154,30 +154,16 @@ class CVTessellation(VoronoiTessellation):
         yBar = np.sum(y * density) / mass
         return (xBar, yBar)
 
-    def get_node_membership(self):
-        """Indices into voronoi bins for each point.
-
-        Returns
-        -------
-        vBinNum : ndarray
-            An array, the length of the input point arrays, which have
-            indices into the node arrays of
-            :meth:`tess.CVTessellation.get_nodes()`.
-        """
+    @property
+    def membership(self):
+        """Array of indices into Voronoi bins for each point."""
         return self._vbin_num
 
-    def get_node_weights(self):
-        """Weight of each Voronoi bin.
-
-        Returns
-        -------
-        nodeWeights : ndarray
-            Array with sum of the density for the nodes, same order as
-            :meth:`tess.CVTessellation.get_nodes()`"""
+    @property
+    def node_weights(self):
+        """Weight of each Voronoi bin (sum of enclosed point masses)."""
         nNodes = len(self.xNode)
         nodeWeights = np.zeros(nNodes, dtype=np.float)
-        print "get_node_weights"
-        print type(self._vbin_num)
         for i in xrange(nNodes):
             ind = np.where(self._vbin_num == i)[0]
             if len(ind) > 0:

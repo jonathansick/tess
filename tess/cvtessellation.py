@@ -79,7 +79,8 @@ class CVTessellation(VoronoiTessellation):
 
         xy = np.column_stack((xPoints, yPoints))
         node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
-        return node_xy[:, 0], node_xy[:, 1], v_bin_numbers
+        return np.array(node_xy[:, 0]), np.array(node_xy[:, 1]), \
+            np.array(v_bin_numbers)
 
     def _run_py_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm in pure-python."""
@@ -175,6 +176,8 @@ class CVTessellation(VoronoiTessellation):
             :meth:`tess.CVTessellation.get_nodes()`"""
         nNodes = len(self.xNode)
         nodeWeights = np.zeros(nNodes, dtype=np.float)
+        print "get_node_weights"
+        print type(self._vbin_num)
         for i in xrange(nNodes):
             ind = np.where(self._vbin_num == i)[0]
             if len(ind) > 0:

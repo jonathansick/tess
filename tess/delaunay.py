@@ -180,6 +180,139 @@ class DelaunayTessellation(object):
                     if not triExists:
                         self._mem_table[theNode].append(i)
 
+    def render_voronoi_field(self, node_values, x_range, y_range,
+                             x_step, y_step):
+        """Renders a zeroth-order field (a Voronoi tiling).
+
+        Parameters
+        ----------
+        node_values : ndarray ``(n_nodes, 1)``
+             Array of the field values at each node
+        x_range : tuple
+            Tuple of ``(x_min, x_max)``
+        y_range : tuple
+            Tuple of ``(y_min, y_max)``
+        x_step : float
+            Scalar, size of pixels along x-axis
+        y_step : float
+            Scalar, size of pixels along y-axis
+
+        Returns
+        -------
+        field : ndarray, ``(ny, nx)``
+            2D array (image) zeroth-order Voronoi field.
+        """
+        xScalarRange = x_range[1] - x_range[0]
+        yScalarRange = y_range[1] - y_range[0]
+
+        nX = int(xScalarRange / x_step)
+        nY = int(yScalarRange / y_step)
+
+        # Transform the cell vertices in physical units to the pixel units of
+        # the rendering space
+        pixVertices = []
+        for i, cell in enumerate(self.voronoi_vertices):
+            pixCell = []
+            for j, vertex in enumerate(cell):
+                phyX, phyY = vertex
+                pixX = phyX / xScalarRange * nX
+                pixY = phyY / yScalarRange * nY
+                pixCell.append((pixX, pixY))
+            pixVertices.append(pixCell)
+
+        # Now paint each of these cells with the colour of the nodeValue.
+        # Use PIL for this?
+        im = Image.new("F", (nX, nY))
+        draw = ImageDraw.Draw(im)
+        for i, cell in enumerate(pixVertices):
+            draw.polygon(cell, fill=node_values[i])
+
+        # Convert the PIL image to a np array
+        # http://effbot.org/zone/pil-changes-116.htm
+        imArray = np.asarray(im)  # will be read-only, so make a copy
+        imArrayCopy = np.array(imArray, copy=True)
+
+        return imArrayCopy
+
+    def render_delaunay_field(self, node_values, x_range, y_range,
+                              x_step, y_step, default=np.nan):
+        """Renders a linearly interpolated Delaunay field.
+
+        The Delaunay vertices take on the values of the nodes with linear
+        interpolation across the triangular facets. Note that this field
+        will not be continuously differentiable, but 'mass' will be conserved.
+
+        Parameters
+        ----------
+        node_values : ndarray, `(nNodes,)`
+            Array field values at each node
+        x_range : tuple
+            Tuple of (x_min, x_max)
+        y_range : tuple
+            Tuple of (y_min, y_max)
+        x_step : float
+            Scalar, size of pixels along x-axis
+        y_step : float
+            Scalar, size of pixels along y-axis
+        default : scalar
+            Value used outside the tessellation's convex hull
+
+        Returns
+        -------
+        field : ndarray, (ny, nx)
+            2D array (image) first-order interpolated Delaunay field.
+        """
+        interp = self.triangulation.linear_interpolator(node_values,
+                                                        default_value=default)
+        field = self._run_interpolator(interp,
+                                       x_range, y_range,
+                                       x_step, y_step)
+        return field
+
+    def render_nearest_neighbours_field(self, node_values, x_range, y_range,
+                                        x_step, y_step, default=np.nan):
+        """Renders a nearest-neighbours interpolated Delaunay Field.
+
+        Nearest neighbours interpolation will create a continuously
+        differentiable image, but 'mass' is not guaranteed to be conserved.
+
+        Parameters
+        ----------
+        node_values : ndarray, `(nNodes,)`
+            Array field values at each node
+        x_range : tuple
+            Tuple of (x_min, x_max)
+        y_range : tuple
+            Tuple of (y_min, y_max)
+        x_step : float
+            Scalar, size of pixels along x-axis
+        y_step : float
+            Scalar, size of pixels along y-axis
+        default : scalar
+            Value used outside the tessellation's convex hull
+
+        Returns
+        -------
+        field : ndarray, (ny, nx)
+            2D array (image) nearest-neighbours interpolated Delaunay field.
+        """
+        interp = self.triangulation.nn_interpolator(node_values,
+                                                    default_value=default)
+        field = self._run_interpolator(interp,
+                                       x_range, y_range,
+                                       x_step, y_step)
+        return field
+
+    def _run_interpolator(self, interp, x_range, y_range, x_step, y_step):
+        """Runs Robert Kern's Linear or NN interpolator objects to create a
+        field.
+        """
+        nX = int((x_range[1] - x_range[0]) / x_step)
+        nY = int((y_range[1] - y_range[0]) / y_step)
+        field = interp[y_range[0]:y_range[1]:complex(0, nY),
+                       x_range[0]:x_range[1]:complex(0, nX)]
+        return field
+
 
 class DelaunayDensityEstimator(object):
     """Uses the DTFE to set the density of each Delaunay node from a
@@ -294,151 +427,6 @@ class DelaunayDensityEstimator(object):
         self.totalArea = contigAreas.sum() / 3.
 
         return self.nodeDensity
-
-
-class FieldRenderer(object):
-    """Renders the Delaunay-tessellated field to a pixel-based image.
-
-    Parameters
-    ----------
-    delaunayTessellation : `DelaunayTessellation` instance
-        A `DelaunayTessellation` object, which has the delaunay triangulation
-    """
-    def __init__(self, delaunayTessellation):
-        super(FieldRenderer, self).__init__()
-        self.delaunayTessellation = delaunayTessellation
-
-    def render_zeroth_order_voronoi(self, nodeValues, xRange, yRange, xStep,
-                                    yStep):
-        """Renders a zeroth-order field (a Voronoi tiling).
-
-        Parameters
-        ----------
-        nodeValues : ndarray (nNodes, 1)
-             Array of the field values at each node
-        xRange : tuple
-            Tuple of (x_min, x_max)
-        yRange : tuple
-            Tuple of (y_min, y_max)
-        xStep : float
-            Scalar, size of pixels along x-axis
-        yStep : float
-            Scalar, size of pixels along y-axis
-
-        Returns
-        -------
-        field : ndarray, (ny, nx)
-            2D array (image) zeroth-order Voronoi field.
-        """
-        cellVertices = self.delaunayTessellation.\
-            compute_voronoi_cell_vertices()
-
-        xScalarRange = xRange[1] - xRange[0]
-        yScalarRange = yRange[1] - yRange[0]
-
-        nX = int(xScalarRange / xStep)
-        nY = int(yScalarRange / yStep)
-
-        # Transform the cell vertices in physical units to the pixel units of
-        # the rendering space
-        pixVertices = []  # same as `cellVertices` but in pixel space
-        for i, cell in enumerate(cellVertices):
-            pixCell = []
-            for j, vertex in enumerate(cell):
-                phyX, phyY = vertex
-                pixX = phyX / xScalarRange * nX
-                pixY = phyY / yScalarRange * nY
-                pixCell.append((pixX, pixY))
-            pixVertices.append(pixCell)
-
-        # Now paint each of these cells with the colour of the nodeValue.
-        # Use PIL for this?
-        im = Image.new("F", (nX, nY))
-        draw = ImageDraw.Draw(im)
-        for i, cell in enumerate(pixVertices):
-            draw.polygon(cell, fill=nodeValues[i])
-
-        # Convert the PIL image to a np array
-        # http://effbot.org/zone/pil-changes-116.htm
-        imArray = np.asarray(im)  # will be read-only, so make a copy
-        imArrayCopy = np.array(imArray, copy=True)
-
-        return imArrayCopy
-
-    def render_first_order_delaunay(self, nodeValues, xRange, yRange,
-                                    xStep, yStep, defaultValue=np.nan):
-        """Renders a linearly interpolated Delaunay field.
-
-        The Delaunay vertices take on the values of the nodes with linear
-        interpolation across the triangular facets. Note that this field
-        will not be continuously differentiable, but 'mass' will be conserved.
-
-        Parameters
-        ----------
-        nodeValues : ndarray, `(nNodes,)`
-            Array field values at each node
-        xRange : tuple
-            Tuple of (x_min, x_max)
-        yRange : tuple
-            Tuple of (y_min, y_max)
-        xStep : float
-            Scalar, size of pixels along x-axis
-        yStep : float
-            Scalar, size of pixels along y-axis
-        defaultValue : scalar
-            Value used outside the tessellation's convex hull
-
-        Returns
-        -------
-        field : ndarray, (ny, nx)
-            2D array (image) first-order interpolated Delaunay field.
-        """
-        interp = self.delaunayTessellation.get_triangulation()\
-            .linear_interpolator(nodeValues, default_value=defaultValue)
-        field = self._run_interpolator(interp, xRange, yRange, xStep, yStep)
-        return field
-
-    def render_nearest_neighbours_delaunay(self, nodeValues, xRange, yRange,
-                                           xStep, yStep, defaultValue=np.nan):
-        """Renders a nearest-neighbours interpolated Delaunay Field.
-
-        Nearest neighbours interpolation will create a continuously
-        differentiable image, but 'mass' is not guaranteed to be conserved.
-
-        Parameters
-        ----------
-        nodeValues : ndarray, `(nNodes,)`
-            Array field values at each node
-        xRange : tuple
-            Tuple of (x_min, x_max)
-        yRange : tuple
-            Tuple of (y_min, y_max)
-        xStep : float
-            Scalar, size of pixels along x-axis
-        yStep : float
-            Scalar, size of pixels along y-axis
-        defaultValue : scalar
-            Value used outside the tessellation's convex hull
-
-        Returns
-        -------
-        field : ndarray, (ny, nx)
-            2D array (image) nearest-neighbours interpolated Delaunay field.
-        """
-        interp = self.delaunayTessellation.get_triangulation().\
-            nn_interpolator(self, nodeValues)
-        field = self._run_interpolator(interp, xRange, yRange, xStep, yStep)
-        return field
-
-    def _run_interpolator(self, interp, xRange, yRange, xStep, yStep):
-        """Runs Robert Kern's Linear or NN interpolator objects to create a
-        field.
-        """
-        nX = int((xRange[1] - xRange[0]) / xStep)
-        nY = int((yRange[1] - yRange[0]) / yStep)
-        field = interp[yRange[0]:yRange[1]:complex(0, nY),
-                       xRange[0]:xRange[1]:complex(0, nX)]
-        return field
 
 
 def makeRectangularBinnedDensityField(x, y, mass, xRange, yRange, xBinSize,

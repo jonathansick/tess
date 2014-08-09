@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tess.density &mdash; tess v0.0.dev111</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev111',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="tess v0.0.dev111" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li>
+	<a href="../../index.html">tess v0.0.dev111</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li>
+      
+       
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for tess.density</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bjn/env python</span>
+<span class="c"># encoding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Density estimation tools.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="DelaunayDensityEstimator"><a class="viewcode-back" href="../../tess/api/density.html#tess.density.DelaunayDensityEstimator">[docs]</a><span class="k">class</span> <span class="nc">DelaunayDensityEstimator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uses the DTFE to set the density of each Delaunay node from a</span>
+<span class="sd">    DelaunayTessellation and the point data. This can then be used as the</span>
+<span class="sd">    values for the first-order Delaunay density field reconstruction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    delaunay : :class:`tess.delaunay.DelaunayTessellation` instance</span>
+<span class="sd">        A :class:`tess.delaunay.DelaunayTessellation` object, which has the</span>
+<span class="sd">        Delaunay triangulation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delaunay</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DelaunayDensityEstimator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span> <span class="o">=</span> <span class="n">delaunay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_density</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c"># hullCorrection: if True, then correct the incomplete area around</span>
+        <span class="c"># Delaunay vertices on point distribution&#39;s hull</span>
+        <span class="c"># NOTE: this seems to be broken</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hullCorrection</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="DelaunayDensityEstimator.estimate_density"><a class="viewcode-back" href="../../tess/api/density.html#tess.density.DelaunayDensityEstimator.estimate_density">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xRange</span><span class="p">,</span> <span class="n">yRange</span><span class="p">,</span> <span class="n">nodeMasses</span><span class="p">,</span> <span class="n">pixelMask</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Estimate the density of each node in the delaunay tessellation using</span>
+<span class="sd">        the DTFE of Schaap (PhD Thesis, Groningen).</span>
+
+<span class="sd">        .. todo:: Implement masked area checking</span>
+
+<span class="sd">        .. todo:: Implement hull correction</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xRange : tuple</span>
+<span class="sd">            A tuple of (x_min, x_max); TODO make these optional, just to scale</span>
+<span class="sd">            the pixel mask array</span>
+<span class="sd">        yRange : tuple</span>
+<span class="sd">            A tuple of (y_min, y_max)</span>
+<span class="sd">        nodeMasses : ndarray, `(n_nodes,)`</span>
+<span class="sd">            An array of the mass of each node, in the same order used by the</span>
+<span class="sd">            `delaunay` object</span>
+<span class="sd">        pixelMask : ndarray, `(ny, nx)`</span>
+<span class="sd">            Numpy array of same size as the extent of `xRange` and `yRange`.</span>
+<span class="sd">            A pixel value of 1 is masked, values of 0 are admitted. This allows</span>
+<span class="sd">            masked areas to be excluded from the density computation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xNode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">nodes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">yNode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">nodes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">nNodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xNode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nNodes</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodeMasses</span><span class="p">):</span>
+            <span class="k">print</span> <span class="s">&quot;Warning: nodeMasses has wrong length (</span><span class="si">%i</span><span class="s">, should be </span><span class="si">%i</span><span class="s">)&quot;</span> <span class="o">%</span> \
+                <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xNode</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodeMasses</span><span class="p">))</span>
+
+        <span class="n">memTable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">membership_table</span>
+        <span class="n">nTri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">n_triangles</span>
+        <span class="n">areas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">triangle_areas</span>
+        <span class="n">extremeNodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delaunay</span><span class="o">.</span><span class="n">hull_nodes</span>
+
+        <span class="c"># TODO this is where I would compute the masked areas...</span>
+        <span class="c"># use the Walking Triangle algorithm</span>
+        <span class="n">maskedAreas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nTri</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pixelMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c"># Compute the area of triangles contiguous about each node</span>
+        <span class="n">contigAreas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nNodes</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nNodes</span><span class="p">):</span>
+            <span class="c"># list of triangle indices associated with node i</span>
+            <span class="n">contigTris</span> <span class="o">=</span> <span class="n">memTable</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">contigAreas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">areas</span><span class="p">[</span><span class="n">contigTris</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> \
+                <span class="o">-</span> <span class="n">maskedAreas</span><span class="p">[</span><span class="n">contigTris</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="c"># Correct the area of contiguous Voronoi regions on the outside of the</span>
+        <span class="c"># convex hull.</span>
+        <span class="c"># TODO check this</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hullCorrection</span><span class="p">:</span>
+            <span class="n">nExtremeNodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">extremeNodes</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">extremeNodes</span><span class="p">):</span>
+                <span class="c"># find the neighbouring extreme points, the one to the left</span>
+                <span class="c"># and right of the point being studied</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">rightNode</span> <span class="o">=</span> <span class="n">extremeNodes</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># take the wrap-around</span>
+                    <span class="n">rightNode</span> <span class="o">=</span> <span class="n">extremeNodes</span><span class="p">[</span><span class="n">nExtremeNodes</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nExtremeNodes</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">leftNode</span> <span class="o">=</span> <span class="n">extremeNodes</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">leftNode</span> <span class="o">=</span> <span class="n">extremeNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c"># find the angle that they subtend, using The Law of Cosines</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">xNode</span><span class="p">[</span><span class="n">leftNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">xNode</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                    <span class="p">(</span><span class="n">yNode</span><span class="p">[</span><span class="n">leftNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">yNode</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">xNode</span><span class="p">[</span><span class="n">rightNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">xNode</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                    <span class="p">(</span><span class="n">yNode</span><span class="p">[</span><span class="n">rightNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">yNode</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">xNode</span><span class="p">[</span><span class="n">rightNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">xNode</span><span class="p">[</span><span class="n">leftNode</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                    <span class="p">(</span><span class="n">yNode</span><span class="p">[</span><span class="n">rightNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">yNode</span><span class="p">[</span><span class="n">node</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">subAngle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">acos</span><span class="p">((</span><span class="n">a</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">b</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">c</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">))</span>
+                <span class="c"># The sub angle should in theory be less than 180 degrees.</span>
+                <span class="c"># This code ensures that we have an angle that covers more</span>
+                <span class="c"># than 180 degrees.</span>
+                <span class="n">extraAngle</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">subAngle</span>
+                <span class="k">if</span> <span class="n">extraAngle</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&quot;Angle error in edge effect correction&quot;</span>
+                <span class="n">correctionFactor</span> <span class="o">=</span> <span class="n">extraAngle</span> <span class="o">/</span> <span class="n">subAngle</span>
+                <span class="c"># update the contiguous area:</span>
+                <span class="n">contigAreas</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">correctionFactor</span><span class="p">)</span> <span class="o">*</span> <span class="n">contigAreas</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+
+        <span class="c"># Finally compute the density at the site of each node by using</span>
+        <span class="c"># eqn 3.36 of Schaap 2007 (pg 69)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_density</span> <span class="o">=</span> <span class="mf">3.</span> <span class="o">*</span> <span class="n">nodeMasses</span> <span class="o">/</span> <span class="n">contigAreas</span>
+
+        <span class="c"># Compute the total tessellated area</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totalArea</span> <span class="o">=</span> <span class="n">contigAreas</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="mf">3.</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_density</span>
+
+</div></div>
+<div class="viewcode-block" id="rectangular_density_field"><a class="viewcode-back" href="../../tess/api/density.html#tess.density.rectangular_density_field">[docs]</a><span class="k">def</span> <span class="nf">rectangular_density_field</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">x_range</span><span class="p">,</span> <span class="n">y_range</span><span class="p">,</span> <span class="n">x_binsize</span><span class="p">,</span>
+                              <span class="n">y_binsize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs rectangular binning on a point distribution to yield a density</span>
+<span class="sd">    map.</span>
+
+<span class="sd">    Returns a field with pixels in units of sum(mass_points)/area. Each pixel</span>
+<span class="sd">    in the field is a bin. If you want a bin to occupy more than one pixel,</span>
+<span class="sd">    just resize the np array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : ndarray</span>
+<span class="sd">        Array of x point coordinates</span>
+<span class="sd">    y : ndarray</span>
+<span class="sd">        Array of y point coordinates</span>
+<span class="sd">    mass : ndarray</span>
+<span class="sd">        Array of point masses</span>
+<span class="sd">    x_range : tuple</span>
+<span class="sd">        Tuple of (xmin, xmax); determines range of reconstructed field</span>
+<span class="sd">    y_range : tuple</span>
+<span class="sd">        Tuple of (ymin, ymax)</span>
+<span class="sd">    x_binsize : scalar</span>
+<span class="sd">        Length of bins along x-axis</span>
+<span class="sd">    y_binsize : scalar</span>
+<span class="sd">        Length of bins along y-axis</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    field : ndarray</span>
+<span class="sd">        2D array (image) of the rectangular binned density field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xGrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">x_range</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">x_range</span><span class="p">)</span> <span class="o">-</span> <span class="n">x_binsize</span><span class="p">,</span> <span class="n">x_binsize</span><span class="p">)</span>
+    <span class="n">yGrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">y_range</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_range</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_binsize</span><span class="p">,</span> <span class="n">y_binsize</span><span class="p">)</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">yGrid</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">xGrid</span><span class="p">)])</span>
+    <span class="n">binArea</span> <span class="o">=</span> <span class="n">x_binsize</span> <span class="o">*</span> <span class="n">y_binsize</span>
+
+    <span class="c"># Trim the dataset to ensure it only covers the range of the field</span>
+    <span class="c"># reconstruction</span>
+    <span class="n">good</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">x</span> <span class="o">&gt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_range</span><span class="p">))</span>
+                    <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">x_range</span><span class="p">))</span>
+                    <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="nb">min</span><span class="p">(</span><span class="n">y_range</span><span class="p">))</span>
+                    <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_range</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">good</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">good</span><span class="p">]</span>
+    <span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="n">good</span><span class="p">]</span>
+
+    <span class="c"># Then sort the point into increasing x-coordinate</span>
+    <span class="n">xsort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">xsort</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">xsort</span><span class="p">]</span>
+    <span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="n">xsort</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">xg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xGrid</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">xg</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">xg</span> <span class="o">+</span> <span class="n">x_binsize</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c"># no points in whole column</span>
+        <span class="n">ycol</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+        <span class="n">mcol</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">yi</span><span class="p">,</span> <span class="n">yg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">yGrid</span><span class="p">):</span>
+            <span class="nb">bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">ycol</span> <span class="o">&gt;</span> <span class="n">yg</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ycol</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">yg</span> <span class="o">+</span> <span class="n">y_binsize</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">bin</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c"># no points in bin</span>
+            <span class="n">totalMass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mcol</span><span class="p">[</span><span class="nb">bin</span><span class="p">])</span>
+            <span class="n">field</span><span class="p">[</span><span class="n">yi</span><span class="p">,</span> <span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="n">totalMass</span>
+
+    <span class="c"># Make it a density plot by dividing each pixel by the binArea</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">field</span> <span class="o">/</span> <span class="n">binArea</span>
+
+    <span class="k">return</span> <span class="n">field</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right"> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 08 Aug 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

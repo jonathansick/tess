@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The tess.density Module &mdash; tess v0.0.dev111</title>
+    
+    <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.dev111',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
+    <link rel="top" title="tess v0.0.dev111" href="../../index.html" />
+    <link rel="up" title="API Reference" href="index.html" />
+    <link rel="next" title="The tess.voronoi Module" href="voronoi.html" />
+    <link rel="prev" title="The tess.delaunay Module" href="delaunay.html" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
+<script type="text/javascript" src="../../_static/copybutton.js"></script>
+
+
+  </head>
+  <body>
+<div class="topbar">
+  <a class="brand" title="Documentation Home" href="../../index.html"><span id="logotext1">astro</span><span id="logotext2">py</span><span id="logotext3">:docs</span></a>
+  <ul>
+    <li><a class="homelink" title="Astropy Homepage" href="http://www.astropy.org"></a></li>
+    <li><a title="General Index" href="../../genindex.html">Index</a></li>
+    <li><a title="Module Index" href="../../py-modindex.html">Modules</a></li>
+    <li>
+      
+      
+<form action="../../search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      
+    </li>
+  </ul>
+</div>
+
+<div class="related">
+    <h3>Navigation</h3>
+    <ul>
+      <li class="right">
+	<a href="voronoi.html" title="The tess.voronoi Module">
+	  next &raquo;
+	</a>
+      </li>
+      <li class="right">
+	<a href="delaunay.html" title="The tess.delaunay Module">
+	  &laquo; previous
+	</a>
+	 |
+      </li>
+      <li>
+	<a href="../../index.html">tess v0.0.dev111</a>
+	 &raquo;
+      </li>
+      <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
+      <li><a href="index.html" accesskey="U">API Reference</a> &raquo;</li>
+      
+      <li>The <tt class="docutils literal"><span class="pre">tess.density</span></tt> Module</li> 
+    </ul>
+</div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-tess.density">
+<span id="the-tess-density-module"></span><h1>The <a class="reference internal" href="#module-tess.density" title="tess.density"><tt class="xref py py-obj docutils literal"><span class="pre">tess.density</span></tt></a> Module<a class="headerlink" href="#module-tess.density" title="Permalink to this headline">¶</a></h1>
+<p>Density estimation tools.</p>
+<dl class="class">
+<dt id="tess.density.DelaunayDensityEstimator">
+<em class="property">class </em><tt class="descclassname">tess.density.</tt><tt class="descname">DelaunayDensityEstimator</tt><big>(</big><em>delaunay</em><big>)</big><a class="reference internal" href="../../_modules/tess/density.html#DelaunayDensityEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.density.DelaunayDensityEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the DTFE to set the density of each Delaunay node from a
+DelaunayTessellation and the point data. This can then be used as the
+values for the first-order Delaunay density field reconstruction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>delaunay</strong> : <a class="reference internal" href="delaunay.html#tess.delaunay.DelaunayTessellation" title="tess.delaunay.DelaunayTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.delaunay.DelaunayTessellation</span></tt></a> instance</p>
+<blockquote class="last">
+<div><p>A <a class="reference internal" href="delaunay.html#tess.delaunay.DelaunayTessellation" title="tess.delaunay.DelaunayTessellation"><tt class="xref py py-class docutils literal"><span class="pre">tess.delaunay.DelaunayTessellation</span></tt></a> object, which has the
+Delaunay triangulation</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tess.density.DelaunayDensityEstimator.estimate_density">
+<tt class="descname">estimate_density</tt><big>(</big><em>xRange</em>, <em>yRange</em>, <em>nodeMasses</em>, <em>pixelMask=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/density.html#DelaunayDensityEstimator.estimate_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.density.DelaunayDensityEstimator.estimate_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the density of each node in the delaunay tessellation using
+the DTFE of Schaap (PhD Thesis, Groningen).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xRange</strong> : tuple</p>
+<blockquote>
+<div><p>A tuple of (x_min, x_max); TODO make these optional, just to scale
+the pixel mask array</p>
+</div></blockquote>
+<p><strong>yRange</strong> : tuple</p>
+<blockquote>
+<div><p>A tuple of (y_min, y_max)</p>
+</div></blockquote>
+<p><strong>nodeMasses</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(n_nodes,)</span></tt></p>
+<blockquote>
+<div><p>An array of the mass of each node, in the same order used by the
+<tt class="xref py py-obj docutils literal"><span class="pre">delaunay</span></tt> object</p>
+</div></blockquote>
+<p><strong>pixelMask</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(ny,</span> <span class="pre">nx)</span></tt></p>
+<blockquote class="last">
+<div><p>Numpy array of same size as the extent of <tt class="xref py py-obj docutils literal"><span class="pre">xRange</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">yRange</span></tt>.
+A pixel value of 1 is masked, values of 0 are admitted. This allows
+masked areas to be excluded from the density computation.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tess.density.rectangular_density_field">
+<tt class="descclassname">tess.density.</tt><tt class="descname">rectangular_density_field</tt><big>(</big><em>x</em>, <em>y</em>, <em>mass</em>, <em>x_range</em>, <em>y_range</em>, <em>x_binsize</em>, <em>y_binsize</em><big>)</big><a class="reference internal" href="../../_modules/tess/density.html#rectangular_density_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.density.rectangular_density_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs rectangular binning on a point distribution to yield a density
+map.</p>
+<p>Returns a field with pixels in units of sum(mass_points)/area. Each pixel
+in the field is a bin. If you want a bin to occupy more than one pixel,
+just resize the np array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of x point coordinates</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of y point coordinates</p>
+</div></blockquote>
+<p><strong>mass</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of point masses</p>
+</div></blockquote>
+<p><strong>x_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (xmin, xmax); determines range of reconstructed field</p>
+</div></blockquote>
+<p><strong>y_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (ymin, ymax)</p>
+</div></blockquote>
+<p><strong>x_binsize</strong> : scalar</p>
+<blockquote>
+<div><p>Length of bins along x-axis</p>
+</div></blockquote>
+<p><strong>y_binsize</strong> : scalar</p>
+<blockquote>
+<div><p>Length of bins along y-axis</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>2D array (image) of the rectangular binned density field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><h3>Page Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">The <tt class="docutils literal"><span class="pre">tess.density</span></tt> Module</a></li>
+</ul>
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+<footer class="footer">
+  <p class="pull-right">
+    <a href="../../_sources/tess/api/density.txt"
+       rel="nofollow">Page Source</a> &nbsp;
+    <a href="#">Back to Top</a></p>
+  <p>
+    &copy; Copyright 2014, Jonathan Sick.<br/>
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2. &nbsp;
+    Last built 08 Aug 2014. <br/>
+  </p>
+</footer>
+  </body>
+</html>

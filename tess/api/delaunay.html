@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The tess.delaunay Module &mdash; tess v0.0.dev107</title>
+    <title>The tess.delaunay Module &mdash; tess v0.0.dev111</title>
     
     <link rel="stylesheet" href="../../_static/bootstrap-astropy.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.0.dev107',
+        VERSION:     '0.0.dev111',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,9 @@
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <script type="text/javascript" src="../../_static/sidebar.js"></script>
     <link rel="shortcut icon" href="../../_static/astropy_logo.ico"/>
-    <link rel="top" title="tess v0.0.dev107" href="../../index.html" />
+    <link rel="top" title="tess v0.0.dev111" href="../../index.html" />
     <link rel="up" title="API Reference" href="index.html" />
-    <link rel="next" title="The tess.voronoi Module" href="voronoi.html" />
+    <link rel="next" title="The tess.density Module" href="density.html" />
     <link rel="prev" title="The tess.cvtessellation Module" href="cvtessellation.html" />
 <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600' rel='stylesheet' type='text/css'>
 <script type="text/javascript" src="../../_static/copybutton.js"></script>
@@ -58,7 +58,7 @@
     <h3>Navigation</h3>
     <ul>
       <li class="right">
-	<a href="voronoi.html" title="The tess.voronoi Module">
+	<a href="density.html" title="The tess.density Module">
 	  next &raquo;
 	</a>
       </li>
@@ -69,7 +69,7 @@
 	 |
       </li>
       <li>
-	<a href="../../index.html">tess v0.0.dev107</a>
+	<a href="../../index.html">tess v0.0.dev111</a>
 	 &raquo;
       </li>
       <li><a href="../index.html" >User&#8217;s Guide to Tess</a> &raquo;</li>
@@ -85,8 +85,344 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-tess-delaunay-module">
-<h1>The <tt class="xref py py-obj docutils literal"><span class="pre">tess.delaunay</span></tt> Module<a class="headerlink" href="#the-tess-delaunay-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-tess.delaunay">
+<span id="the-tess-delaunay-module"></span><h1>The <a class="reference internal" href="#module-tess.delaunay" title="tess.delaunay"><tt class="xref py py-obj docutils literal"><span class="pre">tess.delaunay</span></tt></a> Module<a class="headerlink" href="#module-tess.delaunay" title="Permalink to this headline">¶</a></h1>
+<p>Classes for represent a spatial dataset as a Delaunay Tessellation and
+performing a density analysis.</p>
+<dl class="class">
+<dt id="tess.delaunay.DelaunayDensityEstimator">
+<em class="property">class </em><tt class="descclassname">tess.delaunay.</tt><tt class="descname">DelaunayDensityEstimator</tt><big>(</big><em>delaunayTessellation</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayDensityEstimator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayDensityEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the DTFE to set the density of each Delaunay node from a
+DelaunayTessellation and the point data. This can then be used as the
+values for the first-order Delaunay density field reconstruction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>delaunayTessellation</strong> : <a class="reference internal" href="#tess.delaunay.DelaunayTessellation" title="tess.delaunay.DelaunayTessellation"><tt class="xref py py-obj docutils literal"><span class="pre">DelaunayTessellation</span></tt></a> instance</p>
+<blockquote class="last">
+<div><p>A <a class="reference internal" href="#tess.delaunay.DelaunayTessellation" title="tess.delaunay.DelaunayTessellation"><tt class="xref py py-obj docutils literal"><span class="pre">DelaunayTessellation</span></tt></a> object, which has the delaunay triangulation</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="tess.delaunay.DelaunayDensityEstimator.estimate_density">
+<tt class="descname">estimate_density</tt><big>(</big><em>xRange</em>, <em>yRange</em>, <em>nodeMasses</em>, <em>pixelMask=None</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayDensityEstimator.estimate_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayDensityEstimator.estimate_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the density of each node in the delaunay tessellation using
+the DTFE of Schaap (PhD Thesis, Groningen).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xRange</strong> : tuple</p>
+<blockquote>
+<div><p>A tuple of (x_min, x_max); TODO make these optional, just to scale
+the pixel mask array</p>
+</div></blockquote>
+<p><strong>yRange</strong> : tuple</p>
+<blockquote>
+<div><p>A tuple of (y_min, y_max)</p>
+</div></blockquote>
+<p><strong>nodeMasses</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(n_nodes,)</span></tt></p>
+<blockquote>
+<div><p>An array of the mass of each node, in the same order used by the
+<tt class="xref py py-obj docutils literal"><span class="pre">delaunayTessellation</span></tt> object</p>
+</div></blockquote>
+<p><strong>pixelMask</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(ny,</span> <span class="pre">nx)</span></tt></p>
+<blockquote class="last">
+<div><p>Numpy array of same size as the extent of <tt class="xref py py-obj docutils literal"><span class="pre">xRange</span></tt> and <tt class="xref py py-obj docutils literal"><span class="pre">yRange</span></tt>.
+A pixel value of 1 is masked, values of 0 are admitted. This allows
+masked areas to be excluded from the density computation.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tess.delaunay.DelaunayTessellation">
+<em class="property">class </em><tt class="descclassname">tess.delaunay.</tt><tt class="descname">DelaunayTessellation</tt><big>(</big><em>xNode</em>, <em>yNode</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayTessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayTessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Delaunay triangulation of the given nodes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xNode</strong> : ndarray</p>
+<blockquote>
+<div><p>A <tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">1)</span></tt> array of x-coordinates of each Voronoi node.</p>
+</div></blockquote>
+<p><strong>yNode</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>A <tt class="docutils literal"><span class="pre">(n_points,</span> <span class="pre">1)</span></tt> array of y-coordinates of each Voronoi node.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.adjacency_matrix">
+<tt class="descname">adjacency_matrix</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.adjacency_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets matrix describing the neighbouring triangles of each triangle.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As per Robert Kern&#8217;s Delaunay package: The value can also be
+<tt class="docutils literal"><span class="pre">-1</span></tt> meaning that that edge is on the convex hull of the points
+and there is no neighbor on that edge. The values are ordered such
+that <tt class="docutils literal"><span class="pre">triangle_neighbors[tri,</span> <span class="pre">i]</span></tt> corresponds with the edge
+<em>opposite</em> <tt class="docutils literal"><span class="pre">triangle_nodes[tri,</span> <span class="pre">i]</span></tt>. As such, these neighbors are
+also in counter-clockwise order.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.circumcenters">
+<tt class="descname">circumcenters</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.circumcenters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array, <a href="#id1"><span class="problematic" id="id2">``</span></a>(n_tri, 2) of the circumcenter of each Delaunay triangle.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.hull_nodes">
+<tt class="descname">hull_nodes</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.hull_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of nodes on the convex hull of the node distribution.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.membership_table">
+<tt class="descname">membership_table</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.membership_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of all triangles associated (length <tt class="docutils literal"><span class="pre">n_nodes</span></tt> long; each
+item is another list giving triangle indices).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.n_triangles">
+<tt class="descname">n_triangles</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.n_triangles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of triangles in the tessellation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates of Voronoi nodes, a <tt class="docutils literal"><span class="pre">(n_nodes,</span> <span class="pre">2)</span></tt> numpy array.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.delaunay.DelaunayTessellation.render_delaunay_field">
+<tt class="descname">render_delaunay_field</tt><big>(</big><em>node_values</em>, <em>x_range</em>, <em>y_range</em>, <em>x_step</em>, <em>y_step</em>, <em>default=nan</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayTessellation.render_delaunay_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.render_delaunay_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders a linearly interpolated Delaunay field.</p>
+<p>The Delaunay vertices take on the values of the nodes with linear
+interpolation across the triangular facets. Note that this field
+will not be continuously differentiable, but &#8216;mass&#8217; will be conserved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>node_values</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(nNodes,)</span></tt></p>
+<blockquote>
+<div><p>Array field values at each node</p>
+</div></blockquote>
+<p><strong>x_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (x_min, x_max)</p>
+</div></blockquote>
+<p><strong>y_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (y_min, y_max)</p>
+</div></blockquote>
+<p><strong>x_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along x-axis</p>
+</div></blockquote>
+<p><strong>y_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along y-axis</p>
+</div></blockquote>
+<p><strong>default</strong> : scalar</p>
+<blockquote>
+<div><p>Value used outside the tessellation&#8217;s convex hull</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray, (ny, nx)</p>
+<blockquote class="last">
+<div><p>2D array (image) first-order interpolated Delaunay field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.delaunay.DelaunayTessellation.render_nearest_neighbours_field">
+<tt class="descname">render_nearest_neighbours_field</tt><big>(</big><em>node_values</em>, <em>x_range</em>, <em>y_range</em>, <em>x_step</em>, <em>y_step</em>, <em>default=nan</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayTessellation.render_nearest_neighbours_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.render_nearest_neighbours_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders a nearest-neighbours interpolated Delaunay Field.</p>
+<p>Nearest neighbours interpolation will create a continuously
+differentiable image, but &#8216;mass&#8217; is not guaranteed to be conserved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>node_values</strong> : ndarray, <tt class="xref py py-obj docutils literal"><span class="pre">(nNodes,)</span></tt></p>
+<blockquote>
+<div><p>Array field values at each node</p>
+</div></blockquote>
+<p><strong>x_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (x_min, x_max)</p>
+</div></blockquote>
+<p><strong>y_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (y_min, y_max)</p>
+</div></blockquote>
+<p><strong>x_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along x-axis</p>
+</div></blockquote>
+<p><strong>y_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along y-axis</p>
+</div></blockquote>
+<p><strong>default</strong> : scalar</p>
+<blockquote>
+<div><p>Value used outside the tessellation&#8217;s convex hull</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray, (ny, nx)</p>
+<blockquote class="last">
+<div><p>2D array (image) nearest-neighbours interpolated Delaunay field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tess.delaunay.DelaunayTessellation.render_voronoi_field">
+<tt class="descname">render_voronoi_field</tt><big>(</big><em>node_values</em>, <em>x_range</em>, <em>y_range</em>, <em>x_step</em>, <em>y_step</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#DelaunayTessellation.render_voronoi_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.render_voronoi_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders a zeroth-order field (a Voronoi tiling).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>node_values</strong> : ndarray <tt class="docutils literal"><span class="pre">(n_nodes,</span> <span class="pre">1)</span></tt></p>
+<blockquote>
+<div><p>Array of the field values at each node</p>
+</div></blockquote>
+<p><strong>x_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of <tt class="docutils literal"><span class="pre">(x_min,</span> <span class="pre">x_max)</span></tt></p>
+</div></blockquote>
+<p><strong>y_range</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of <tt class="docutils literal"><span class="pre">(y_min,</span> <span class="pre">y_max)</span></tt></p>
+</div></blockquote>
+<p><strong>x_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along x-axis</p>
+</div></blockquote>
+<p><strong>y_step</strong> : float</p>
+<blockquote>
+<div><p>Scalar, size of pixels along y-axis</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray, <tt class="docutils literal"><span class="pre">(ny,</span> <span class="pre">nx)</span></tt></p>
+<blockquote class="last">
+<div><p>2D array (image) zeroth-order Voronoi field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.triangle_areas">
+<tt class="descname">triangle_areas</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.triangle_areas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of geometric areas of each triangle.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.triangles">
+<tt class="descname">triangles</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.triangles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get node indices of each triangle, a <tt class="docutils literal"><span class="pre">(n_tri,</span> <span class="pre">3)</span></tt> array.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.triangulation">
+<tt class="descname">triangulation</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.triangulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <tt class="xref py py-class docutils literal"><span class="pre">matplotlib.delaunay.triangulate.Triangulation</span></tt> instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tess.delaunay.DelaunayTessellation.voronoi_vertices">
+<tt class="descname">voronoi_vertices</tt><a class="headerlink" href="#tess.delaunay.DelaunayTessellation.voronoi_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists of polygon vertices for the Voronoi cells surrounding each
+node.</p>
+<p>These vertices are ordered counter clockwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tess.delaunay.makeRectangularBinnedDensityField">
+<tt class="descclassname">tess.delaunay.</tt><tt class="descname">makeRectangularBinnedDensityField</tt><big>(</big><em>x</em>, <em>y</em>, <em>mass</em>, <em>xRange</em>, <em>yRange</em>, <em>xBinSize</em>, <em>yBinSize</em><big>)</big><a class="reference internal" href="../../_modules/tess/delaunay.html#makeRectangularBinnedDensityField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tess.delaunay.makeRectangularBinnedDensityField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs rectangular binning on a point distribution to yield a density
+map.</p>
+<p>Returns a field with pixels in units of sum(mass_points)/area. Each pixel
+in the field is a bin. If you want a bin to occupy more than one pixel,
+just resize the np array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of x point coordinates</p>
+</div></blockquote>
+<p><strong>y</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of y point coordinates</p>
+</div></blockquote>
+<p><strong>mass</strong> : ndarray</p>
+<blockquote>
+<div><p>Array of point masses</p>
+</div></blockquote>
+<p><strong>xRange</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (xmin, xmax); determines range of reconstructed field</p>
+</div></blockquote>
+<p><strong>yRange</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple of (ymin, ymax)</p>
+</div></blockquote>
+<p><strong>xBinSize</strong> : scalar</p>
+<blockquote>
+<div><p>Length of bins along x-axis</p>
+</div></blockquote>
+<p><strong>yBinSize</strong> : scalar</p>
+<blockquote>
+<div><p>Length of bins along y-axis</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>field</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>2D array (image) of the rectangular binned density field.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 

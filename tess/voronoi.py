@@ -23,17 +23,17 @@ class VoronoiTessellation(object):
     """
     def __init__(self, x, y):
         super(VoronoiTessellation, self).__init__()
-        self.xNode = x  #: Array of node x-coordinates
-        self.yNode = y  #: Array of node y-coordinates
+        self._xnode = x  #: Array of node x-coordinates
+        self._ynode = y  #: Array of node y-coordinates
         self._segmap = None  #: 2D `ndarray` of `vBinNum` for each pixel
-        self.cellAreas = None  #: 1D array of Voronoi cell areas
-        self.xlim = None  #: Length-2 array of min, max coords of x pixel grid
-        self.ylim = None  #: Length-2 array of min, max coords of y pixel grid
+        self._cell_areas = None  #: 1D array of Voronoi cell areas
+        self.xlim = None  #: ``(min, max)`` coords of x pixel grid
+        self.ylim = None  #: ``(min, max)`` coords of y pixel grid
 
     @property
     def nodes(self):
         """Voronoi tessellation nodes, a ``(n_points, 2)`` array."""
-        return np.column_stack((self.xNode, self.yNode))
+        return np.column_stack((self._xnode, self._ynode))
 
     def set_pixel_grid(self, xlim, ylim):
         """Set a pixel grid bounding box for the tessellation. This is
@@ -56,14 +56,14 @@ class VoronoiTessellation(object):
 
         # Reset dependencies
         self._segmap = None
-        self.cellAreas = None
+        self._cell_areas = None
 
     @property
     def segmap(self):
         """Segmentation map of Voronoi bin numbers for each pixel."""
         if self._segmap is None:
             self._segmap = self.render_voronoi_field(
-                np.arange(0, self.yNode.shape[0]))
+                np.arange(0, self._ynode.shape[0]))
         return self._segmap
 
     def render_voronoi_field(self, nodeValues):
@@ -86,7 +86,7 @@ class VoronoiTessellation(object):
         """
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
-        assert len(nodeValues) == len(self.xNode), "Not the same number of" \
+        assert len(nodeValues) == len(self._xnode), "Not the same number of" \
             " node values as nodes!"
 
         # Pixel grid to compute Voronoi field on
@@ -96,7 +96,7 @@ class VoronoiTessellation(object):
 
         # Package xNode and yNode into Nx2 array
         # y is first index if FITS data is also structured this way
-        yxNode = np.vstack((self.yNode, self.xNode)).T
+        yxNode = np.vstack((self._ynode, self._xnode)).T
 
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
@@ -104,7 +104,7 @@ class VoronoiTessellation(object):
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the
-        `self.cellAreas` attribute.
+        `self._cell_areas` attribute.
 
         .. note:: This method requires that the segmentation map is computed
            (see :meth:`make_segmap`), and is potentially expensive (I'm working
@@ -137,20 +137,8 @@ class VoronoiTessellation(object):
         else:
             _segmap = self._segmap
         pixelCounts = np.bincount(_segmap.ravel())
-        self.cellAreas = pixelCounts
-        return self.cellAreas
-
-    def get_nodes(self):
-        """Returns the x and y positions of the Voronoi nodes.
-
-        Returns
-        -------
-        xNode : ndarray
-            X-coordinates of Voronoi nodes.
-        yNode : ndarray
-            Y-coordinates of Voronoi nodes
-        """
-        return self.xNode, self.yNode
+        self._cell_areas = pixelCounts
+        return self._cell_areas
 
     def partition_points(self, x, y):
         """Partition an arbitrary set of points, defined by `x` and `y`
@@ -171,7 +159,7 @@ class VoronoiTessellation(object):
         indices : ndarray
             Array of indices of Voronoi nodes
         """
-        nodeData = np.vstack((self.xNode, self.yNode)).T
+        nodeData = np.vstack((self._xnode, self._ynode)).T
         pointData = np.vstack((x, y)).T
         tree = KDTree(nodeData)
         distances, indices = tree.query(pointData, k=1)
@@ -227,9 +215,9 @@ class VoronoiTessellation(object):
         density : ndarray
             Density of each Voronoi cell, in units of mass / square pixel.
         """
-        if self.cellAreas is None:
+        if self._cell_areas is None:
             self.compute_cell_areas(flagmap=flagmap)
-        return self.sum_cell_point_mass(x, y, mass=mass) / self.cellAreas
+        return self.sum_cell_point_mass(x, y, mass=mass) / self._cell_areas
 
 
 class CVTessellation(VoronoiTessellation):
@@ -383,7 +371,7 @@ class CVTessellation(VoronoiTessellation):
     @property
     def node_weights(self):
         """Weight of each Voronoi bin (sum of enclosed point masses)."""
-        nNodes = len(self.xNode)
+        nNodes = len(self._xnode)
         nodeWeights = np.zeros(nNodes, dtype=np.float)
         for i in xrange(nNodes):
             ind = np.where(self._vbin_num == i)[0]

@@ -2,6 +2,20 @@
 # encoding: utf-8
 """
 Representation of Voronoi Tessellations.
+
+The :class:`VoronoiTessellation` class  provides basic support for Voronoi
+tessellations, partitioning points in Voronoi cells, and rendering Voronoi
+fields. This class uses KD Trees to associate points and pixels to Voronoi
+cells.
+
+The :class:`CVTessellation` class is used to build a Voronoi tessellation by
+finding the nodes the partition a data set into cells of equal mass. Once
+built, a :class:`CVTessellation` provides all the same facilities as a
+:class:`VoronoiTessellation`.
+
+Note that the :class:`tess.delaunay.DelaunayTessellation` can also be used to
+build a Voronoi tessellation and field rendering, though there are still bugs
+in this approach.
 """
 
 import numpy as np
@@ -214,6 +228,9 @@ class VoronoiTessellation(object):
 class CVTessellation(VoronoiTessellation):
     """A centroidal Voronoi tessellation (CVT) Uses Lloyd's algorithm to assign
     data points to Voronoi bins so that each bin has an equal mass.
+
+    The :mod:`tess.pixel_accretion` and :mod:`tess.point_accretion` modules
+    are useful for building node coordinates to seed the CVT.
 
     Inherits from :class:`tess.voronoi.VoronoiTessellation`.
 

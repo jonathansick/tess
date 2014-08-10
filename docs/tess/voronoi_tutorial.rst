@@ -33,7 +33,7 @@ Here's a map of those centroids and pixel segmentation into roughly equal S/N bi
 Of course, this is not a Voronoi map; the bins have odd shapes dictated by the circumstances of the pixel accretion.
 But we can use these generator centroids as seeds for a Centroidal Voronoi Tessellation (CVT), which segments the pixels into a Voronoi tessellation so that the Voronoi nodes coincide with the centre of mass of each Voronoi cell and each Voronoi cell has approximately equal mass (or in this case, S/N)::
 
-   from tess.cvtessellation import CVTessellation
+   from tess.voronoi import CVTessellation
    cvt = CVTessellation.from_image(pix_sn ** 2., generator_centroids)
    cvt_xy = cvt.nodes
    segimage = cvt.segmap

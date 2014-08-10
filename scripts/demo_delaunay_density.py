@@ -13,7 +13,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.collections import PolyCollection
 
 from tess.point_accretion import EqualMassAccretor
-from tess.cvtessellation import CVTessellation
+from tess.voronoi import CVTessellation
 from tess.delaunay import DelaunayTessellation
 from tess.density import DelaunayDensityEstimator
 

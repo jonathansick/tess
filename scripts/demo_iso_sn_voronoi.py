@@ -12,7 +12,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib.gridspec as gridspec
 
 from tess.pixel_accretion import EqualSNAccretor
-from tess.cvtessellation import CVTessellation
+from tess.voronoi import CVTessellation
 
 
 def main():

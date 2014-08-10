@@ -27,10 +27,10 @@ Our point distribution looks like this:
 
 Although it is not strictly necessary to bin points when estimating a density field, doing so reduces Poisson noise.
 Lets construct a centroidal Voronoi tessellation so that each Voronoi cell contains a mass of 10 points.
-This is a two-step process of first making a set of generators by accreting points into bins with :class:`tess.point_accretion.EqualMassAccretor` and then producing the centroidal Voronoi tessellation with :class:`tess.cvtessellation.CVTessellation`::
+This is a two-step process of first making a set of generators by accreting points into bins with :class:`tess.point_accretion.EqualMassAccretor` and then producing the centroidal Voronoi tessellation with :class:`tess.voronoi.CVTessellation`::
 
    from tess.point_accretion import EqualMassAccretor
-   from tess.cvtessellation import CVTessellation
+   from tess.voronoi import CVTessellation
    accretor = EqualMassAccretor(point_xy, point_mass, 100.)
    accretor.accrete()
    generator_xy = accretor.nodes()

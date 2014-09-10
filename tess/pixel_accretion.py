@@ -371,9 +371,9 @@ class EqualSNAccretor(PixelAccretor):
     def __init__(self, image, noise_image, target_sn,
                  min_pixels=1, max_pixels=None, start=None):
         self.noise = noise_image
-        self.centroid_weightmap = (self.image / self.noise) ** 2.
-        assert self.image.shape[0] == self.noise.shape[0]
-        assert self.image.shape[1] == self.noise.shape[1]
+        self.centroid_weightmap = (image / self.noise) ** 2.
+        assert image.shape[0] == self.noise.shape[0]
+        assert image.shape[1] == self.noise.shape[1]
         self.target_sn = target_sn
         self.min_pixels = min_pixels
         self.max_pixels = max_pixels

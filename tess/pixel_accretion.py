@@ -10,6 +10,9 @@ from heapq import heappop, heapify, heappush
 
 import numpy as np
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class PixelAccretor(object):
     """Baseclass for pixel accretion.
@@ -61,6 +64,8 @@ class PixelAccretor(object):
         while ij0:
             self._make_bin(ij0, n_bins)
             ij0 = self._new_start_point()
+            log.debug("Made bin {0:d}".format(n_bins))
+            print "Hello world", n_bins
             n_bins += 1
 
     def _make_bin(self, ij0, bin_index):
@@ -70,6 +75,7 @@ class PixelAccretor(object):
         self.current_edge_dict = {}  # to keep index into heap
         self._seg_image[ij0] = bin_index
         self._add_edges(ij0)
+        print "Calling bin_started"
         self.bin_started()  # call to subclass
         while self.current_edge_heap:  # while there are edges
             # Select a new pixel to add
@@ -81,6 +87,7 @@ class PixelAccretor(object):
                 self._seg_image[ij0] = bin_index
                 self._add_edges(ij0)
                 self.pixel_added()  # call to subclass
+                print "pixel_added", len(self.current_bin_indices)
             else:
                 # Reject pixel and stop accretion
                 break

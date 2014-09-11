@@ -65,8 +65,6 @@ class PixelAccretor(object):
             self._make_bin(ij0, n_bins)
             ij0 = self._new_start_point()
             n_bins += 1
-            if n_bins > 3500:  # FIXME DEBUG
-                return
 
     def _make_bin(self, ij0, bin_index):
         """Make a new bin, starting with pixel ij0."""

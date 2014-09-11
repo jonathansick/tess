@@ -249,11 +249,10 @@ class CVTessellation(VoronoiTessellation):
         an array of generators accordinate to target mass or S/N.
     """
     def __init__(self, xy_points, dens_points, node_xy=None):
-        x_node, y_node, vbin_num = self._tessellate(xy_points[:, 0],
-                                                    xy_points[:, 1],
-                                                    dens_points,
-                                                    node_xy=node_xy)
-        xy = np.column_stack((x_node, y_node))
+        xy, vbin_num = self._tessellate(xy_points,  # CHANGED
+                                        dens_points,
+                                        node_xy=node_xy)
+        # xy = np.column_stack((x_node, y_node))
         super(CVTessellation, self).__init__(xy)
         self._vbin_num = vbin_num
 
@@ -279,25 +278,23 @@ class CVTessellation(VoronoiTessellation):
         """
         x, y = np.meshgrid(np.arange(density.shape[1], dtype=float),
                            np.arange(density.shape[0], dtype=float))
-        instance = cls(x.flatten(),
-                       y.flatten(),
+        xy = np.column_stack((x.flatten(), y.flatten()))
+        instance = cls(xy,
                        density.flatten(),
                        node_xy=generators)
         instance.set_pixel_grid((0, density.shape[1]), (0, density.shape[0]))
         return instance
 
-    def _tessellate(self, xPoints, yPoints, densPoints, node_xy=None):
+    def _tessellate(self, xy, densPoints, node_xy=None):
         """Computes the centroidal voronoi tessellation itself."""
         self.densPoints = densPoints
 
         # Obtain pre-generator node coordinates
         if node_xy is None:
-            node_xy = np.column_stack((xPoints.copy(), yPoints.copy()))
+            node_xy = xy.copy()
 
-        xy = np.column_stack((xPoints, yPoints))
         node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
-        return np.array(node_xy[:, 0]), np.array(node_xy[:, 1]), \
-            np.array(v_bin_numbers)
+        return node_xy, np.array(v_bin_numbers)
 
     def _run_py_lloyds(self, xPoints, yPoints, densPoints, xNode, yNode):
         """Run Lloyd's algorithm in pure-python."""

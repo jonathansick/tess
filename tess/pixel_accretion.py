@@ -105,52 +105,56 @@ class PixelAccretor(object):
         if idx[0] < self._nrows and self._seg_image[idx] == -1:
             if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
-                v = (quality, idx)
-                self.current_edge_dict[idx] = v
-                if self.current_edge_heap:
-                    heappush(self.current_edge_heap, v)
-                else:
-                    self.current_edge_heap = [v]
-                    heapify(self.current_edge_heap)
+                if quality is not None:
+                    v = (quality, idx)
+                    self.current_edge_dict[idx] = v
+                    if self.current_edge_heap:
+                        heappush(self.current_edge_heap, v)
+                    else:
+                        self.current_edge_heap = [v]
+                        heapify(self.current_edge_heap)
 
         # Bottom neighbour
         idx = (ij0[0] - 1, ij0[1])
         if idx[0] >= 0 and self._seg_image[idx] == -1:
             if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
-                v = (quality, idx)
-                self.current_edge_dict[idx] = v
-                if self.current_edge_heap:
-                    heappush(self.current_edge_heap, v)
-                else:
-                    self.current_edge_heap = [v]
-                    heapify(self.current_edge_heap)
+                if quality is not None:
+                    v = (quality, idx)
+                    self.current_edge_dict[idx] = v
+                    if self.current_edge_heap:
+                        heappush(self.current_edge_heap, v)
+                    else:
+                        self.current_edge_heap = [v]
+                        heapify(self.current_edge_heap)
 
         # Right neighbour
         idx = (ij0[0], ij0[1] + 1)
         if idx[1] < self._ncols and self._seg_image[idx] == -1:
             if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
-                v = (quality, idx)
-                self.current_edge_dict[idx] = v
-                if self.current_edge_heap:
-                    heappush(self.current_edge_heap, v)
-                else:
-                    self.current_edge_heap = [v]
-                    heapify(self.current_edge_heap)
+                if quality is not None:
+                    v = (quality, idx)
+                    self.current_edge_dict[idx] = v
+                    if self.current_edge_heap:
+                        heappush(self.current_edge_heap, v)
+                    else:
+                        self.current_edge_heap = [v]
+                        heapify(self.current_edge_heap)
 
         # Left neighbour
         idx = (ij0[0], ij0[1] - 1)
         if idx[1] >= 0 and self._seg_image[idx] == -1:
             if idx not in self.current_edge_dict:
                 quality = self.candidate_quality(idx)  # call to subclass
-                v = (quality, idx)
-                self.current_edge_dict[idx] = v
-                if self.current_edge_heap:
-                    heappush(self.current_edge_heap, v)
-                else:
-                    self.current_edge_heap = [v]
-                    heapify(self.current_edge_heap)
+                if quality is not None:
+                    v = (quality, idx)
+                    self.current_edge_dict[idx] = v
+                    if self.current_edge_heap:
+                        heappush(self.current_edge_heap, v)
+                    else:
+                        self.current_edge_heap = [v]
+                        heapify(self.current_edge_heap)
 
     def update_edge_heap(self):
         """May be called by the subclass whenever the 'quality' values of edge
@@ -307,6 +311,9 @@ class IsoIntensityAccretor(PixelAccretor):
         """
         if self._bin_mean_intensity is None:
             return 0.
+        elif not np.isfinite(self.image[idx[0], idx[1]]):
+            # this pixel is likely not finite, so ignore it
+            return None
         else:
             return float(np.abs(self.image[idx] - self._bin_mean_intensity))
 
@@ -418,6 +425,9 @@ class EqualSNAccretor(PixelAccretor):
         """
         if self._current_bin_centroid is None:
             return 0.
+        elif not np.isfinite(self.centroid_weightmap[idx[0], idx[1]]):
+            # this pixel is likely not finite, so ignore it
+            return None
         else:
             return float(np.sum((idx - self._current_bin_centroid) ** 2.))
 

@@ -321,7 +321,7 @@ class IsoIntensityAccretor(PixelAccretor):
         npix = len(self.current_bin_indices)
         if npix < self.min_pixels:
             return True
-        if self.max_pixels and npix > self.max_pixels:
+        if self.max_pixels and npix >= self.max_pixels:
             return False
         intensities = np.array([self.image[k] for k in
                                 self.current_bin_indices + [idx]])
@@ -434,7 +434,7 @@ class EqualSNAccretor(PixelAccretor):
             return True
         if self._current_bin_sn > self.target_sn:
             return False
-        if self.max_pixels and npix > self.max_pixels:
+        if self.max_pixels and npix >= self.max_pixels:
             return False
         else:
             return True

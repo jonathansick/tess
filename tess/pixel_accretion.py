@@ -40,13 +40,31 @@ class PixelAccretor(object):
     def __init__(self, image, ij0=None):
         super(PixelAccretor, self).__init__()
         self.image = image
+        self._seg_image = -1 * np.ones(self.image.shape, dtype=int)
         if ij0 is None:
             ij0 = self._max_start_point()
-        self._accrete(ij0)
+        while True:
+            self._accrete(ij0)
+            unbinned = np.where(self._seg_image == -1)
+            if len(unbinned[0]) == 0:
+                break
+            else:
+                ij0 = self._max_start_point()
 
     def _max_start_point(self):
-        """Index of largest pixel to use as a default start point"""
-        return np.unravel_index(np.nanargmax(self.image), self.image.shape)
+        """Index of largest pixel to use as a default start point.
+
+        Unbinned pixels are ignored, allowing this method ot be used to seed
+        explorations of islands of unbinned pixels (that are surrounded by
+        NaNs).
+        """
+        x, y = np.meshgrid(np.arange(self.image.shape[1], dtype=float),
+                           np.arange(self.image.shape[0], dtype=float))
+        unbinned = np.where(self._seg_image.flatten() == -1)
+        x = x.flatten()[unbinned]
+        y = y.flatten()[unbinned]
+        imax = np.argmax(self.image.flatten()[unbinned])
+        return y[imax], x[imax]
 
     def _accrete(self, ij0):
         """Run the pixel accretion algorithm, starting with pixel ij0.
@@ -58,7 +76,6 @@ class PixelAccretor(object):
         """
         # self.n_unbinned_pixels = self.image.shape[0] * self.image.shape[1]
         self._global_edge_pixels = set([])
-        self._seg_image = -1 * np.ones(self.image.shape, dtype=int)
         self._nrows, self._ncols = self.image.shape
         n_bins = 0
         while ij0:

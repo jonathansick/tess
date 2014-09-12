@@ -245,28 +245,17 @@ class PixelAccretor(object):
         the ``centroids`` attribute.
         """
         if self._bin_nums is None:
+            n_bins = self._seg_image.max()
             bin_nums = []
-            max_bin = self._seg_image.max()
-            bin_nums = []
-            centroids = []
-            if hasattr(self, 'centroid_weightmap'):
-                weights = self.centroid_weightmap
-            else:
-                weights = np.ones(self._seg_image.shape, dtype=np.float)
-            for bin_num in xrange(max_bin):
+            for i, bin_num in enumerate(xrange(n_bins)):
                 pixels = np.where(self._seg_image == bin_num)
                 npix = len(pixels[0])
+                print "npix", npix
                 if npix == 0:
                     continue
-                w = weights[pixels]
-                cx = np.average([pixels[1][i]
-                                 for i in xrange(npix)], weights=w)
-                cy = np.average([pixels[0][i]
-                                 for i in xrange(npix)], weights=w)
-                bin_nums.append(bin_num)
-                centroids.append((cx, cy))
-            bin_nums = np.array(bin_nums, dtype=int)
-            self._bin_nums = bin_nums
+                else:
+                    bin_nums.append(bin_num)
+            self._bin_nums = np.array(bin_nums)
         return self._bin_nums
 
 

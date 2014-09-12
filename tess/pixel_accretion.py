@@ -209,30 +209,35 @@ class PixelAccretor(object):
 
     @property
     def centroids(self):
-        """Bin centroids, as ``bin_nums, (x,y)`` pixel coordinate tuples."""
+        """Bin centroids, as ``(x,y)`` pixel coordinates in a ``(2,n)`` array.
+        """
         # In this baseclass we compute centroids from first principles;
         # subclasses can opt to use their own cache or their own weighting
         # scheme instead.
-        max_bin = self._seg_image.max()
-        bin_nums = []
-        centroids = []
+        n_bins = self._seg_image.max()
         if hasattr(self, 'centroid_weightmap'):
             weights = self.centroid_weightmap
         else:
             weights = np.ones(self._seg_image.shape, dtype=np.float)
-        for bin_num in xrange(max_bin):
+        centroids = np.nan * np.empty((n_bins, 2), dtype=np.float)
+        for i, bin_num in enumerate(xrange(n_bins)):
             pixels = np.where(self._seg_image == bin_num)
             npix = len(pixels[0])
+            print "npix", npix
             if npix == 0:
                 continue
-            w = weights[pixels]
-            cx = np.average([pixels[1][i] for i in xrange(npix)], weights=w)
-            cy = np.average([pixels[0][i] for i in xrange(npix)], weights=w)
-            bin_nums.append(bin_num)
-            centroids.append((cx, cy))
-        bin_nums = np.array(bin_nums, dtype=int)
-        centroids = np.array(centroids)
-        return centroids
+            w = weights[pixels].flatten()
+            finite_pix = np.where(np.isfinite(w))[0]
+            print "n_finite", len(finite_pix)
+            for j in (0, 1):
+                centroids[i, j] = np.average(pixels[j][finite_pix],
+                                             weights=w[finite_pix])
+        # Swarp to x, y coordinate order
+        temp = np.copy(centroids[:, 0])
+        centroids[:, 0] = centroids[:, 1]
+        centroids[:, 1] = temp
+        valid_centroids = np.where(np.isfinite(centroids[:, 0]))[0]
+        return centroids[valid_centroids, :]
 
     @property
     def bin_nums(self):

@@ -43,8 +43,9 @@ class PixelAccretor(object):
         self._seg_image = -1 * np.ones(self.image.shape, dtype=int)
         if ij0 is None:
             ij0 = self._max_start_point()
+        n_bins = 0
         while True:
-            self._accrete(ij0)
+            n_bins = self._accrete(ij0, start_index=n_bins)
             unbinned = np.where(self._seg_image == -1)
             if len(unbinned[0]) == 0:
                 break
@@ -66,7 +67,7 @@ class PixelAccretor(object):
         imax = np.argmax(self.image.flatten()[unbinned])
         return y[imax], x[imax]
 
-    def _accrete(self, ij0):
+    def _accrete(self, ij0, start_index=0):
         """Run the pixel accretion algorithm, starting with pixel ij0.
 
         Parameters
@@ -77,11 +78,12 @@ class PixelAccretor(object):
         # self.n_unbinned_pixels = self.image.shape[0] * self.image.shape[1]
         self._global_edge_pixels = set([])
         self._nrows, self._ncols = self.image.shape
-        n_bins = 0
+        n_bins = start_index
         while ij0:
             self._make_bin(ij0, n_bins)
             ij0 = self._new_start_point()
             n_bins += 1
+        return n_bins - 1
 
     def _make_bin(self, ij0, bin_index):
         """Make a new bin, starting with pixel ij0."""
@@ -223,12 +225,10 @@ class PixelAccretor(object):
         for i, bin_num in enumerate(xrange(n_bins)):
             pixels = np.where(self._seg_image == bin_num)
             npix = len(pixels[0])
-            print "npix", npix
             if npix == 0:
                 continue
             w = weights[pixels].flatten()
             finite_pix = np.where(np.isfinite(w))[0]
-            print "n_finite", len(finite_pix)
             for j in (0, 1):
                 centroids[i, j] = np.average(pixels[j][finite_pix],
                                              weights=w[finite_pix])
@@ -250,13 +250,22 @@ class PixelAccretor(object):
             for i, bin_num in enumerate(xrange(n_bins)):
                 pixels = np.where(self._seg_image == bin_num)
                 npix = len(pixels[0])
-                print "npix", npix
                 if npix == 0:
                     continue
                 else:
                     bin_nums.append(bin_num)
             self._bin_nums = np.array(bin_nums)
         return self._bin_nums
+
+    def blank_bad_bins(self):
+        """Instead of re-assigning pixels from bad bins, just remove them
+        from the segmap
+        """
+        self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
+        failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
+        for bin_index in failed_bins:
+            bad_pix = np.where(self._seg_image == bin_index)
+            self._seg_image[bad_pix] = -1
 
 
 class IsoIntensityAccretor(PixelAccretor):
@@ -488,16 +497,6 @@ class EqualSNAccretor(PixelAccretor):
             coords = np.vstack(pix_idx).T
             dists, reassignment_indices = tree.query(coords)
             self._seg_image[pix_idx] = good_bins[reassignment_indices]
-
-    def blank_bad_bins(self):
-        """Instead of re-assigning pixels from bad bins, just remove them
-        from the segmap
-        """
-        self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
-        failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
-        for bin_index in failed_bins:
-            bad_pix = np.where(self._seg_image == bin_index)
-            self._seg_image[bad_pix] = -1
 
     @property
     def bin_sn(self):

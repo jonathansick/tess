@@ -7,7 +7,8 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
-cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy):
+cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy,
+            long max_iters):
     """
     Lloyd's algorithm shifts the positions of Voronoi nodes so that each
     Voronoi bin contains equal mass.
@@ -20,6 +21,8 @@ cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy):
         Weights of data points.
     node_xy : (n_nodes, 2) ndarray
         Coordinates of (initial) Voronoi nodes.
+    max_iters : int
+        Maximum number of iterations of Lloyd's algorithm.
 
     Returns
     -------
@@ -81,7 +84,7 @@ cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy):
         # Judge convergence
         if delta == 0:
             return node_xy, idx, True
-        elif n_iters > 300:
+        elif n_iters > max_iters:
             return node_xy, idx, False
         else:
             n_iters += 1

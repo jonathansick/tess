@@ -250,16 +250,19 @@ class CVTessellation(VoronoiTessellation):
         for the tessellation. You can use
         :class:`tess.point_accretion.PointAccretion` and subclasses to build
         an array of generators accordinate to target mass or S/N.
+    max_iters : int
+        Maximum number of iterations of Lloyd's algorithm.
     """
-    def __init__(self, xy_points, dens_points, node_xy=None):
+    def __init__(self, xy_points, dens_points, node_xy=None, max_iters=300):
         xy, vbin_num = self._tessellate(xy_points,  # CHANGED
                                         dens_points,
-                                        node_xy=node_xy)
+                                        node_xy=node_xy,
+                                        max_iters=max_iters)
         super(CVTessellation, self).__init__(xy)
         self._vbin_num = vbin_num
 
     @classmethod
-    def from_image(cls, density, generators):
+    def from_image(cls, density, generators, max_iters=300):
         """Convenience constructor for centroidal Voronoi tessellations
         of pixel data sets.
 
@@ -277,6 +280,8 @@ class CVTessellation(VoronoiTessellation):
             starting points for each Voronoi cell.
             Note that coordinates are (x, y), which is the reverse of (y, x)
             image indices.
+        max_iters : int
+            Maximum number of iterations of Lloyd's algorithm.
         """
         x, y = np.meshgrid(np.arange(density.shape[1], dtype=float),
                            np.arange(density.shape[0], dtype=float))
@@ -285,11 +290,12 @@ class CVTessellation(VoronoiTessellation):
         good = np.where(np.isfinite(dens))[0]
         instance = cls(xy[good, :],
                        dens[good],
-                       node_xy=generators)
+                       node_xy=generators,
+                       max_iters=max_iters)
         instance.set_pixel_grid((0, density.shape[1]), (0, density.shape[0]))
         return instance
 
-    def _tessellate(self, xy, densPoints, node_xy=None):
+    def _tessellate(self, xy, densPoints, node_xy=None, max_iters=300):
         """Computes the centroidal voronoi tessellation itself."""
         self.densPoints = densPoints
 
@@ -297,7 +303,8 @@ class CVTessellation(VoronoiTessellation):
         if node_xy is None:
             node_xy = xy.copy()
 
-        node_xy, v_bin_numbers, converged = lloyd(xy, densPoints, node_xy)
+        node_xy, v_bin_numbers, converged = lloyd(xy, densPoints, node_xy,
+                                                  max_iters)
         if not converged:
             log.warning("CVT did not converge")
         return np.asarray(node_xy), np.array(v_bin_numbers)

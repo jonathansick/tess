@@ -97,7 +97,7 @@ class VoronoiTessellation(object):
         """
         assert self.xlim is not None, "Need to run `set_pixel_grid()` first"
         assert self.ylim is not None, "Need to run `set_pixel_grid()` first"
-        assert len(nodeValues) == self._sy.shape[0], "Not the same number of" \
+        assert len(nodeValues) == self._xy.shape[0], "Not the same number of" \
             " node values as nodes!"
 
         # Pixel grid to compute Voronoi field on
@@ -295,7 +295,7 @@ class CVTessellation(VoronoiTessellation):
             node_xy = xy.copy()
 
         node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
-        return node_xy, np.array(v_bin_numbers)
+        return np.asarray(node_xy), np.array(v_bin_numbers)
 
     @property
     def membership(self):

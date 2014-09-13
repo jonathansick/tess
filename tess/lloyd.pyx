@@ -8,6 +8,28 @@ from scipy.spatial import cKDTree
 
 
 cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy):
+    """
+    Lloyd's algorithm shifts the positions of Voronoi nodes so that each
+    Voronoi bin contains equal mass.
+
+    Parameters
+    ----------
+    xy : (n_points, 2) ndarray
+        Coordinates of data points.
+    w : (n_points,) ndarray
+        Weights of data points.
+    node_xy : (n_nodes, 2) ndarray
+        Coordinates of (initial) Voronoi nodes.
+
+    Returns
+    -------
+    node_xy : (n_nodes, 2) ndarray
+        Coordinates of (optimized) Voronoi nodes.
+    idx : (npoints,) ndarray
+        Index of node (Voronoi cell) that each data point is a member of.
+    converged : bool
+        ``True`` if Lloyd's algorithm converged, ``False`` if not.
+    """
     cdef long i
     cdef long n_iters = 0
     cdef double delta, dx, dy
@@ -54,12 +76,12 @@ cpdef lloyd(double[:, :] xy, double[:] w, double[:, :] node_xy):
             dx = orig_node_xy[i, 0] - node_xy[i, 0]
             dy = orig_node_xy[i, 1] - node_xy[i, 1]
             delta += dx * dx + dy * dy
-        print "Delta %03d %.2e" % (n_iters, delta)
+        print "CVT Delta %03d %.2e" % (n_iters, delta)
 
         # Judge convergence
         if delta == 0:
-            return node_xy, idx
+            return node_xy, idx, True
         elif n_iters > 300:
-            return None
+            return node_xy, idx, False
         else:
             n_iters += 1

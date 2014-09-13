@@ -22,6 +22,9 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial import KDTree
 
+import logging
+log = logging.getLogger(__name__)
+
 from lloyd import lloyd
 
 
@@ -294,7 +297,9 @@ class CVTessellation(VoronoiTessellation):
         if node_xy is None:
             node_xy = xy.copy()
 
-        node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
+        node_xy, v_bin_numbers, converged = lloyd(xy, densPoints, node_xy)
+        if not converged:
+            log.warning("CVT did not converge")
         return np.asarray(node_xy), np.array(v_bin_numbers)
 
     @property

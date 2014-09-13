@@ -278,8 +278,10 @@ class CVTessellation(VoronoiTessellation):
         x, y = np.meshgrid(np.arange(density.shape[1], dtype=float),
                            np.arange(density.shape[0], dtype=float))
         xy = np.column_stack((x.flatten(), y.flatten()))
-        instance = cls(xy,
-                       density.flatten(),
+        dens = density.flatten()
+        good = np.where(np.isfinite(dens))[0]
+        instance = cls(xy[good, :],
+                       dens[good],
                        node_xy=generators)
         instance.set_pixel_grid((0, density.shape[1]), (0, density.shape[0]))
         return instance
@@ -292,9 +294,6 @@ class CVTessellation(VoronoiTessellation):
         if node_xy is None:
             node_xy = xy.copy()
 
-        print "xy.dtype", xy.dtype
-        print "densPoints.dtype", densPoints.dtype
-        print "node_xy.dtype", node_xy.dtype
         node_xy, v_bin_numbers = lloyd(xy, densPoints, node_xy)
         return node_xy, np.array(v_bin_numbers)
 

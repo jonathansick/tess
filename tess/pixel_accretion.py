@@ -489,6 +489,16 @@ class EqualSNAccretor(PixelAccretor):
             dists, reassignment_indices = tree.query(coords)
             self._seg_image[pix_idx] = good_bins[reassignment_indices]
 
+    def blank_bad_bins(self):
+        """Instead of re-assigning pixels from bad bins, just remove them
+        from the segmap
+        """
+        self._valid_bins = np.array(self._valid_bins, dtype=np.bool)
+        failed_bins = np.where(self._valid_bins == False)[0]  # NOQA
+        for bin_index in failed_bins:
+            bad_pix = np.where(self._seg_image == bin_index)
+            self._seg_image[bad_pix] = -1
+
     @property
     def bin_sn(self):
         """S/N of each bin."""

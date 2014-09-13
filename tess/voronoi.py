@@ -108,15 +108,10 @@ class VoronoiTessellation(object):
             np.arange(self.ylim[0], self.ylim[1]),
             np.arange(self.xlim[0], self.xlim[1]))
 
-        # Package xNode and yNode into Nx2 array
-        # y is first index if FITS data is also structured this way
-        yx = np.empty(self._xy.shape, dtype=self._xy.dtype)
-        yx[:, 0] = self._xy[:, 1]
-        yx[:, 1] = self._xy[:, 0]
-
         # Nearest neighbour interpolation is equivalent to Voronoi pixel
         # tessellation!
-        return griddata(yx, nodeValues, (xgrid, ygrid), method='nearest')
+        return griddata(self._xy, nodeValues, (xgrid, ygrid),
+                        method='nearest').T
 
     def compute_cell_areas(self, flagmap=None):
         """Compute the areas of Voronoi cells; result is stored in the
